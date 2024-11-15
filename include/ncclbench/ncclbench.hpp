@@ -1,70 +1,95 @@
 #pragma once
 
+#include <optional>
 #include <string>
+#include <vector>
+
+#include <mpi.h>
 
 #include "ncclbench/ncclbench_export.hpp"
 
-/**
- * A note about the MSVC warning C4251:
- * This warning should be suppressed for private data members of the project's
- * exported classes, because there are too many ways to work around it and all
- * involve some kind of trade-off (increased code complexity requiring more
- * developer time, writing boilerplate code, longer compile times), but those
- * solutions are very situational and solve things in slightly different ways,
- * depending on the requirements of the project.
- * That is to say, there is no general solution.
- *
- * What can be done instead is understand where issues could arise where this
- * warning is spotting a legitimate bug. I will give the general description of
- * this warning's cause and break it down to make it trivial to understand.
- *
- * C4251 is emitted when an exported class has a non-static data member of a
- * non-exported class type.
- *
- * The exported class in our case is the class below (exported_class), which
- * has a non-static data member (m_name) of a non-exported class type
- * (std::string).
- *
- * The rationale here is that the user of the exported class could attempt to
- * access (directly, or via an inline member function) a static data member or
- * a non-inline member function of the data member, resulting in a linker
- * error.
- * Inline member function above means member functions that are defined (not
- * declared) in the class definition.
- *
- * Since this exported class never makes these non-exported types available to
- * the user, we can safely ignore this warning. It's fine if there are
- * non-exported class types as private member variables, because they are only
- * accessed by the members of the exported class itself.
- *
- * The name() method below returns a pointer to the stored null-terminated
- * string as a fundamental type (char const), so this is safe to use anywhere.
- * The only downside is that you can have dangling pointers if the pointer
- * outlives the class instance which stored the string.
- *
- * Shared libraries are not easy, they need some discipline to get right, but
- * they also solve some other problems that make them worth the time invested.
- */
+#if defined(USE_RCCL)
+#include <rccl/rccl.h>
+#else // USE_NCCL by default
+#include <nccl.h>
+#endif
 
-/**
- * @brief Reports the name of the library
- *
- * Please see the note above for considerations when creating shared libraries.
- */
-class NCCLBENCH_EXPORT exported_class
-{
-public:
-  /**
-   * @brief Initializes the name field to the name of the project
-   */
-  exported_class();
+namespace ncclbench {
 
-  /**
-   * @brief Returns a non-owning pointer to the string stored in this class
-   */
-  auto name() const -> char const*;
-
-private:
-  NCCLBENCH_SUPPRESS_C4251
-  std::string m_name;
+struct NCCLBENCH_EXPORT Config {
+    std::string operation;
+    bool blocking;
+    std::string data_type;
+    size_t bytes_total;
+    size_t iterations;
+    size_t warmups;
 };
+
+struct Sizes {
+    size_t bytes_total;
+
+    size_t bytes_per_rank;
+    size_t elements_per_rank;
+
+    size_t bytes_send;
+    size_t elements_send;
+
+    size_t bytes_recv;
+    size_t elements_recv;
+};
+
+struct NCCLBENCH_EXPORT Results {
+  private:
+    static constexpr size_t SML_WIDTH = 10;
+    static constexpr size_t MID_WIDTH = 15;
+    static constexpr size_t LRG_WIDTH = 20;
+
+    static constexpr size_t PRECISION = 2;
+
+  public:
+    std::string operation;
+    bool blocking;
+    std::string data_type;
+    size_t bytes_total;
+    size_t elements_per_rank;
+    size_t iterations;
+    size_t warmups;
+    double time_min;
+    double time_max;
+    double time_avg;
+    double bw_alg;
+    double bw_bus;
+
+    [[nodiscard]] static auto header() -> std::string;
+    [[nodiscard]] static auto csv_header() -> std::string;
+
+    [[nodiscard]] auto text() const -> std::string;
+    [[nodiscard]] auto csv() const -> std::string;
+};
+
+class State {
+    std::optional<MPI_Comm> mpi_comm_{};
+
+    std::optional<ncclComm_t> nccl_comm_{};
+    std::optional<ncclUniqueId> nccl_id_{};
+
+    std::optional<int> ranks_{};
+    std::optional<int> rank_{};
+
+    std::optional<int> gpu_assigned_{};
+
+  public:
+    [[nodiscard]] static auto mpi_comm() -> MPI_Comm;
+    [[nodiscard]] static auto nccl_comm() -> ncclComm_t;
+    [[nodiscard]] static auto nccl_id() -> ncclUniqueId;
+    [[nodiscard]] static auto ranks() -> int;
+    [[nodiscard]] static auto rank() -> int;
+    [[nodiscard]] static auto gpu_assigned() -> int;
+};
+
+NCCLBENCH_EXPORT auto run(const Config &cfg) -> Results;
+NCCLBENCH_EXPORT auto run(std::vector<Config> &cfgs) -> std::vector<Results>;
+
+NCCLBENCH_EXPORT auto state() -> State &;
+
+} // namespace ncclbench

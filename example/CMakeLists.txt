@@ -5,9 +5,9 @@ project(ncclbenchExamples CXX)
 include(../cmake/project-is-top-level.cmake)
 include(../cmake/folders.cmake)
 
-if(PROJECT_IS_TOP_LEVEL)
+if (PROJECT_IS_TOP_LEVEL)
   find_package(ncclbench REQUIRED)
-endif()
+endif ()
 
 add_custom_target(run-examples)
 
@@ -20,6 +20,6 @@ function(add_example NAME)
   add_dependencies(run-examples "run_${NAME}")
 endfunction()
 
-add_example(empty_example)
+add_example(ncclbench_example)
 
 add_folders(Example)
