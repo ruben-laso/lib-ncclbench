@@ -2,7 +2,7 @@
 
 namespace ncclbench::benchmark {
 
-void nccl_reduce_scatter(const Config &cfg) {
+auto nccl_reduce_scatter(const Config &cfg) -> Results {
     static constexpr int ALIGN = 4;
 
     const auto bytes_per_rank =
@@ -10,15 +10,15 @@ void nccl_reduce_scatter(const Config &cfg) {
     const auto elements_per_rank = types::bytes_to_elements(
         bytes_per_rank, types::str_to_mpi(cfg.data_type));
 
-    const Sizes sizes = {
-        .bytes_total = cfg.bytes_total,
-        .bytes_per_rank = bytes_per_rank,
-        .elements_per_rank = elements_per_rank,
-        .bytes_send = bytes_per_rank * State::ranks(),
-        .elements_send = elements_per_rank * State::ranks(),
-        .bytes_recv = bytes_per_rank,
-        .elements_recv = elements_per_rank,
-    };
+    Sizes sizes{};
+
+    sizes.bytes_total = cfg.bytes_total;
+    sizes.bytes_per_rank = bytes_per_rank;
+    sizes.elements_per_rank = elements_per_rank;
+    sizes.bytes_send = bytes_per_rank * State::ranks();
+    sizes.elements_send = elements_per_rank * State::ranks();
+    sizes.bytes_recv = bytes_per_rank;
+    sizes.elements_recv = elements_per_rank;
 
     const auto nccl_call = [&](const void *sendbuff, void *recvbuff,
                                size_t count, ncclDataType_t datatype,
@@ -32,7 +32,7 @@ void nccl_reduce_scatter(const Config &cfg) {
         return (State::ranks() - 1.0) / State::ranks();
     };
 
-    run_benchmark(cfg, sizes, nccl_call, bw_factor);
+    return run_benchmark(cfg, sizes, nccl_call, bw_factor);
 }
 
 } // namespace ncclbench::benchmark

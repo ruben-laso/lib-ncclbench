@@ -14,8 +14,9 @@ namespace ncclbench::benchmark {
 
 namespace utils {
 template <typename BwFactor>
-Results gather_results(const Config &cfg, const Sizes &sizes,
-                       const double local_avg_time, BwFactor &bw_factor) {
+auto gather_results(const Config &cfg, const Sizes &sizes,
+                    const double local_avg_time, BwFactor &bw_factor)
+    -> Results {
 
     double min_time, max_time, avg_time;
     MPICHECK(MPI_Reduce(&local_avg_time, &min_time, 1, MPI_DOUBLE, MPI_MIN, 0,
@@ -33,32 +34,36 @@ Results gather_results(const Config &cfg, const Sizes &sizes,
         const double factor = bw_factor();     // Factor for BW calculation
         const double bus_bw = alg_bw * factor; // Bus bandwidth in GB/s
 
-        return Results{.operation = cfg.operation,
-                       .blocking = cfg.blocking,
-                       .data_type = cfg.data_type,
-                       .bytes_total = sizes.bytes_total,
-                       .elements_per_rank = sizes.elements_per_rank,
-                       .iterations = cfg.iterations,
-                       .warmups = cfg.warmups,
-                       .time_min = min_time,
-                       .time_max = max_time,
-                       .time_avg = avg_time,
-                       .bw_alg = alg_bw,
-                       .bw_bus = bus_bw};
+        Results r{};
+        r.operation = cfg.operation;
+        r.blocking = cfg.blocking;
+        r.data_type = cfg.data_type;
+        r.bytes_total = sizes.bytes_total;
+        r.elements_per_rank = sizes.elements_per_rank;
+        r.iterations = cfg.iterations;
+        r.warmups = cfg.warmups;
+        r.time_min = min_time;
+        r.time_max = max_time;
+        r.time_avg = avg_time;
+        r.bw_alg = alg_bw;
+        r.bw_bus = bus_bw;
+
+        return r;
     }
 
     return {};
 }
 
-static void synch_stream(cudaStream_t stream) {
+static void sync_stream(const cudaStream_t stream) {
     CUDACHECK(cudaStreamSynchronize(stream));
     MPICHECK(MPI_Barrier(MPI_COMM_WORLD));
 }
 } // namespace utils
 
 template <typename NCCLFunction, typename BwFactor>
-Results run_benchmark(const Config &cfg, const Sizes &sizes,
-                      NCCLFunction &&ncclFunction, BwFactor &&bw_factor) {
+auto run_benchmark(const Config &cfg, const Sizes &sizes,
+                   NCCLFunction &&ncclFunction, BwFactor &&bw_factor)
+    -> Results {
 
     cudaStream_t stream;
     CUDACHECK(cudaStreamCreate(&stream));
@@ -66,8 +71,8 @@ Results run_benchmark(const Config &cfg, const Sizes &sizes,
     // Allocate memory
     void *buffer_send;
     void *buffer_recv;
-    CUDACHECK(cudaMalloc((void **)&buffer_send, sizes.bytes_send));
-    CUDACHECK(cudaMalloc((void **)&buffer_recv, sizes.bytes_recv));
+    CUDACHECK(cudaMalloc(&buffer_send, sizes.bytes_send));
+    CUDACHECK(cudaMalloc(&buffer_recv, sizes.bytes_recv));
     void *buffer_host = malloc(sizes.bytes_send);
     ncclbench::utils::init_data(buffer_host, types::str_to_mpi(cfg.data_type),
                                 sizes.elements_send);
@@ -84,11 +89,11 @@ Results run_benchmark(const Config &cfg, const Sizes &sizes,
             ncclFunction(buffer_send, buffer_recv, sizes.elements_send,
                          nccl_datatype, comm, stream);
             if (cfg.blocking) {
-                utils::synch_stream(stream);
+                utils::sync_stream(stream);
             }
         }
         if (not cfg.blocking) {
-            utils::synch_stream(stream);
+            utils::sync_stream(stream);
         }
     };
 

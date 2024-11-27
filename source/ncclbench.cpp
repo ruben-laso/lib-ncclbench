@@ -140,18 +140,18 @@ auto State::rank() -> int {
 auto State::gpu_assigned() -> int {
     if (not state_.gpu_assigned_) {
         // Calculate local rank based on hostname to select GPU
-        char hostname[1024];
-        get_hostname(hostname, 1024);
-        const uint64_t hostHash = get_host_hash(hostname);
+        const auto hostname = get_hostname();
+        const uint64_t hostHash = get_host_hash(hostname.c_str());
 
-        uint64_t hostHashes[ranks()];
+        std::vector<uint64_t> hostHashes(ranks());
         hostHashes[rank()] = hostHash;
 
-        MPICHECK(MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, hostHashes,
-                               sizeof(uint64_t), MPI_BYTE, MPI_COMM_WORLD));
+        MPICHECK(MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+                               hostHashes.data(), sizeof(uint64_t), MPI_BYTE,
+                               MPI_COMM_WORLD));
 
         state_.gpu_assigned_ = std::count_if(
-            hostHashes, hostHashes + rank(),
+            hostHashes.begin(), hostHashes.begin() + rank(),
             [&](const uint64_t hash) { return hash == hostHash; });
 
         // Set the GPU device for this process
@@ -167,19 +167,19 @@ auto run(const Config &cfg) -> Results {
 
     switch (string_to_function(cfg.operation)) {
     case NCCL_FUNCTIONS::ALL_GATHER:
-        return benchmarks::nccl_allgather(cfg);
+        return benchmark::nccl_allgather(cfg);
     case NCCL_FUNCTIONS::ALL_REDUCE:
-        return benchmarks::nccl_allreduce(cfg);
+        return benchmark::nccl_allreduce(cfg);
     case NCCL_FUNCTIONS::ALL_TO_ALL:
-        return benchmarks::nccl_alltoall(cfg);
+        return benchmark::nccl_alltoall(cfg);
     case NCCL_FUNCTIONS::BROADCAST:
-        return benchmarks::nccl_broadcast(cfg);
+        return benchmark::nccl_broadcast(cfg);
     case NCCL_FUNCTIONS::POINT_TO_POINT:
-        return benchmarks::nccl_p2p(cfg);
+        return benchmark::nccl_p2p(cfg);
     case NCCL_FUNCTIONS::REDUCE:
-        return benchmarks::nccl_reduce(cfg);
+        return benchmark::nccl_reduce(cfg);
     case NCCL_FUNCTIONS::REDUCE_SCATTER:
-        return benchmarks::nccl_reduce_scatter(cfg);
+        return benchmark::nccl_reduce_scatter(cfg);
     default:
         throw std::runtime_error{"Benchmark not implemented"};
     }
