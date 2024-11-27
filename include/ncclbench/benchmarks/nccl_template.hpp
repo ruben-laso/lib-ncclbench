@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include <mpi.h>
 
 #include "ncclbench/ncclbench.hpp"
@@ -82,9 +80,9 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
 
     // Benchmark function
     const auto nccl_datatype = types::str_to_nccl(cfg.data_type);
-    auto comm = State::nccl_comm();
 
     auto benchmark_loop = [&](const size_t iter) {
+        auto comm = State::nccl_comm();
         for (size_t i = 0; i < iter; i++) {
             ncclFunction(buffer_send, buffer_recv, sizes.elements_send,
                          nccl_datatype, comm, stream);
@@ -98,11 +96,11 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
     };
 
     // Warmup
-    MPICHECK(MPI_Barrier(MPI_COMM_WORLD));
+    MPICHECK(MPI_Barrier(State::mpi_comm()));
     benchmark_loop(cfg.warmups);
 
     // Benchmark
-    MPICHECK(MPI_Barrier(MPI_COMM_WORLD));
+    MPICHECK(MPI_Barrier(State::mpi_comm()));
     const double start = MPI_Wtime();
     benchmark_loop(cfg.iterations);
     const double end = MPI_Wtime();
@@ -112,7 +110,6 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
     const auto results = utils::gather_results(cfg, sizes, avg_time, bw_factor);
 
     // Cleanup
-    NCCLCHECK(ncclCommDestroy(comm));
     CUDACHECK(cudaStreamDestroy(stream));
     CUDACHECK(cudaFree(buffer_send));
     CUDACHECK(cudaFree(buffer_recv));

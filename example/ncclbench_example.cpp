@@ -23,19 +23,27 @@ auto main(int argc, char * argv[]) -> int
 {
     MPI_Init(&argc, &argv);
 
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
     CLI::App app{"NCCL Bench example"};
 
     Options options;
 
-    app.add_option("-o,--operation", options.operation, "NCCL operation. E.g. ncclAllReduce");
-    app.add_option("-d,--data-type", options.data_type, "Data type: [char, int, float, double]");
-    app.add_option("-s,--size", options.sizes_bytes, "Size in bytes")->expected(-1);
+    app.add_option("-o,--operation", options.operation, "NCCL operation. E.g. ncclAllReduce")->required();
+    app.add_option("-d,--data-type", options.data_type, "Data type: [byte, char, int, float, double]")->required();
+    app.add_option("-s,--sizes", options.sizes_bytes, "Size(s) in bytes. E.g.: 1024 2048 4096")->required();
     app.add_option("-i,--iterations", options.iterations, "Number of iterations");
     app.add_option("-w,--warmups", options.warmups, "Number of warmups");
     app.add_flag("-b,--blocking", options.blocking, "Blocking or non-blocking");
     app.add_flag("--csv", options.csv, "Output in CSV format");
 
     CLI11_PARSE(app, argc, argv);
+
+    if (rank == 0 and options.sizes_bytes.empty()) {
+        std::cerr << "No sizes provided" << std::endl;
+        return EXIT_FAILURE;
+    }
 
     ncclbench::Config config;
     config.operation = options.operation;
@@ -44,14 +52,20 @@ auto main(int argc, char * argv[]) -> int
     config.warmups = options.warmups;
     config.blocking = options.blocking;
 
-    std::cout << ncclbench::Results::header();
+    if (rank == 0) {
+        std::cout << (options.csv ? ncclbench::Results::csv_header() : ncclbench::Results::header()) << std::endl;
+    }
+
     for (const auto size : options.sizes_bytes) {
         config.bytes_total = size;
+        MPI_Barrier(MPI_COMM_WORLD);
         const auto res = ncclbench::run(config);
-        std::cout << (options.csv ? res.csv() : res.text());
+        if (rank == 0) {
+        	std::cout << (options.csv ? res.csv() : res.text()) << std::endl;
+        }
     }
 
     MPI_Finalize();
 
-	return 0;
+	return EXIT_SUCCESS;
 }

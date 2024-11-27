@@ -29,8 +29,7 @@ auto Results::header() -> std::string {
         << std::setw(MID_WIDTH) << "Avg_Time (us)"  //
         << std::setw(MID_WIDTH) << "Max_Time (us)"  //
         << std::setw(MID_WIDTH) << "algBW (GB/s)"   //
-        << std::setw(MID_WIDTH) << "busBW (GB/s)"   //
-        << '\n';
+        << std::setw(MID_WIDTH) << "busBW (GB/s)";
 
     return oss.str();
 }
@@ -48,8 +47,7 @@ auto Results::csv_header() -> std::string {
         << "Avg_Time (us),"  //
         << "Max_Time (us),"  //
         << "algBW (GB/s),"   //
-        << "busBW (GB/s)"    //
-        << '\n';
+        << "busBW (GB/s)";
 
     return oss.str();
 }
@@ -70,8 +68,7 @@ auto Results::text() const -> std::string {
         << std::setw(MID_WIDTH) << time_avg                  //
         << std::setw(MID_WIDTH) << time_max                  //
         << std::setw(MID_WIDTH) << bw_alg                    //
-        << std::setw(MID_WIDTH) << bw_bus                    //
-        << '\n';
+        << std::setw(MID_WIDTH) << bw_bus;
 
     return oss.str();
 }
@@ -89,7 +86,7 @@ auto Results::csv() const -> std::string {
         << time_avg << ","                  //
         << time_max << ","                  //
         << bw_alg << ","                    //
-        << bw_bus << '\n';
+        << bw_bus;
 
     return oss.str();
 }
@@ -102,18 +99,21 @@ auto State::mpi_comm() -> MPI_Comm { return MPI_COMM_WORLD; }
 auto State::nccl_comm() -> ncclComm_t {
     if (not state_.nccl_comm_.has_value()) {
         const auto nccl_id = State::nccl_id();
-        ncclComm_t comm;
+        state_.nccl_comm_ = {ncclCommWrapper{}};
+        ncclComm_t &comm = state_.nccl_comm_.value().comm;
         NCCLCHECK(
             ncclCommInitRank(&comm, State::ranks(), nccl_id, State::rank()));
-        state_.nccl_comm_ = {comm};
     }
-    return state_.nccl_comm_.value();
+    return state_.nccl_comm_.value().comm;
 }
 
 auto State::nccl_id() -> ncclUniqueId {
     if (not state_.nccl_id_.has_value()) {
         ncclUniqueId id;
-        NCCLCHECK(ncclGetUniqueId(&id));
+        if (rank() == 0) {
+            NCCLCHECK(ncclGetUniqueId(&id));
+        }
+        MPICHECK(MPI_Bcast(&id, sizeof(id), MPI_BYTE, 0, State::mpi_comm()));
         state_.nccl_id_ = {id};
     }
     return state_.nccl_id_.value();

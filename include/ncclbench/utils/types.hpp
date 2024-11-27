@@ -23,19 +23,19 @@ inline auto mpi_to_nccl(const MPI_Datatype datatype) -> ncclDataType_t {
 }
 
 inline MPI_Datatype str_to_mpi(const std::string_view &str) {
-    if (str == "MPI_BYTE") {
+    if (str == "byte") {
         return MPI_BYTE;
     }
-    if (str == "MPI_INT") {
+    if (str == "int") {
         return MPI_INT;
     }
-    if (str == "MPI_DOUBLE") {
+    if (str == "double") {
         return MPI_DOUBLE;
     }
-    if (str == "MPI_CHAR") {
+    if (str == "char") {
         return MPI_CHAR;
     }
-    if (str == "MPI_FLOAT") {
+    if (str == "float") {
         return MPI_FLOAT;
     }
 
