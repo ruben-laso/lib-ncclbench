@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include <mpi.h>
 
 #include "ncclbench/ncclbench.hpp"
@@ -21,11 +19,11 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
 
     double min_time, max_time, avg_time;
     MPICHECK(MPI_Reduce(&local_avg_time, &min_time, 1, MPI_DOUBLE, MPI_MIN, 0,
-                        MPI_COMM_WORLD));
+                        State::mpi_comm()));
     MPICHECK(MPI_Reduce(&local_avg_time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0,
-                        MPI_COMM_WORLD));
+                        State::mpi_comm()));
     MPICHECK(MPI_Reduce(&local_avg_time, &avg_time, 1, MPI_DOUBLE, MPI_SUM, 0,
-                        MPI_COMM_WORLD));
+                        State::mpi_comm()));
 
     if (State::rank() == 0) {
         avg_time /= State::ranks();
@@ -57,7 +55,7 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
 
 static void sync_stream(cudaStream_t stream) {
     CUDACHECK(cudaStreamSynchronize(stream));
-    MPICHECK(MPI_Barrier(MPI_COMM_WORLD));
+    MPICHECK(MPI_Barrier(State::mpi_comm()));
 }
 
 template <typename NCCLCall>
@@ -141,7 +139,7 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
     const auto nccl_datatype = types::str_to_nccl(cfg.data_type);
     const auto comm = State::nccl_comm();
     auto nccl_call = [&]() {
-        ncclFunction(buffer_send, buffer_recv, sizes.elements_send,
+        ncclFunction(buffer_send, buffer_recv, sizes.elements_per_rank,
                      nccl_datatype, comm, stream);
     };
 

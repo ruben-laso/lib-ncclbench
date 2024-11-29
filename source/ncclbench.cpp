@@ -152,7 +152,7 @@ auto State::gpu_assigned() -> int {
 
         MPICHECK(MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
                                hostHashes.data(), sizeof(uint64_t), MPI_BYTE,
-                               MPI_COMM_WORLD));
+                               State::mpi_comm()));
 
         state_.gpu_assigned_ = std::count_if(
             hostHashes.begin(), hostHashes.begin() + rank(),

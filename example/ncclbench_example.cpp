@@ -17,7 +17,7 @@ struct Options
     size_t warmup_its = 0;
     double benchmark_secs = 0.0;
     double warmup_secs = 0.0;
-    bool blocking = true;
+    bool blocking = false;
     bool csv = false;
 };
 
@@ -34,7 +34,7 @@ auto main(int argc, char * argv[]) -> int
 
     app.add_option("-o,--operation", options.operation, "NCCL operation. E.g. ncclAllReduce")->required();
     app.add_option("-d,--data-type", options.data_type, "Data type: [byte, char, int, float, double]")->required();
-    app.add_option("-s,--sizes", options.sizes_bytes, "Size(s) in bytes. E.g.: 1024 2048 4096")->required()->check(CLI::PositiveNumber);
+    app.add_option("-s,--sizes", options.sizes_bytes, "Size(s) in bytes. E.g.: 1024 2048 4096")->required()->check(CLI::NonNegativeNumber);
     app.add_flag("-b,--blocking", options.blocking, "Blocking or non-blocking");
     app.add_flag("--csv", options.csv, "Output in CSV format");
 
@@ -46,8 +46,8 @@ auto main(int argc, char * argv[]) -> int
 
     // Only one of --warmups or --warmup-time can be used
     auto grp_warmup_its_secs = app.add_option_group("Warmup iterations or seconds");
-    grp_warmup_its_secs->add_option("-w,--warmups", options.warmup_its, "Number of warmup iterations")->check(CLI::PositiveNumber);
-    grp_warmup_its_secs->add_option("-W,--warmup-time", options.warmup_secs, "Warmup time in seconds")->check(CLI::PositiveNumber);
+    grp_warmup_its_secs->add_option("-w,--warmups", options.warmup_its, "Number of warmup iterations")->check(CLI::NonNegativeNumber);
+    grp_warmup_its_secs->add_option("-W,--warmup-time", options.warmup_secs, "Warmup time in seconds")->check(CLI::NonNegativeNumber);
     grp_warmup_its_secs->require_option(1);
 
     CLI11_PARSE(app, argc, argv);

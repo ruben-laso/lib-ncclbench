@@ -6,7 +6,7 @@ auto nccl_p2p(const Config &cfg) -> Results {
     const auto rank = State::rank();
     const auto ranks = State::ranks();
 
-    if (rank % 2 != 0) {
+    if (ranks % 2 != 0) {
         throw std::runtime_error("This benchmark requires an even number of "
                                  "processes.");
     }
