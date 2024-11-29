@@ -53,6 +53,8 @@ auto Results::csv_header() -> std::string {
 }
 
 auto Results::text() const -> std::string {
+    static constexpr double SECS_TO_USECS = 1.0E6;
+
     std::ostringstream oss;
 
     oss << std::fixed << std::setprecision(PRECISION);
@@ -64,9 +66,9 @@ auto Results::text() const -> std::string {
         << std::setw(LRG_WIDTH) << bytes_total               //
         << std::setw(MID_WIDTH) << elements_per_rank         //
         << std::setw(MID_WIDTH) << benchmark_its             //
-        << std::setw(MID_WIDTH) << time_min                  //
-        << std::setw(MID_WIDTH) << time_avg                  //
-        << std::setw(MID_WIDTH) << time_max                  //
+        << std::setw(MID_WIDTH) << time_min * SECS_TO_USECS  //
+        << std::setw(MID_WIDTH) << time_avg * SECS_TO_USECS  //
+        << std::setw(MID_WIDTH) << time_max * SECS_TO_USECS  //
         << std::setw(MID_WIDTH) << bw_alg                    //
         << std::setw(MID_WIDTH) << bw_bus;
 
@@ -74,6 +76,8 @@ auto Results::text() const -> std::string {
 }
 
 auto Results::csv() const -> std::string {
+    static constexpr double SECS_TO_USECS = 1.0E6;
+
     std::ostringstream oss;
 
     oss << operation << ","                 //
@@ -82,9 +86,9 @@ auto Results::csv() const -> std::string {
         << bytes_total << ","               //
         << elements_per_rank << ","         //
         << benchmark_its << ","             //
-        << time_min << ","                  //
-        << time_avg << ","                  //
-        << time_max << ","                  //
+        << time_min * SECS_TO_USECS << ","  //
+        << time_avg * SECS_TO_USECS << ","  //
+        << time_max * SECS_TO_USECS << ","  //
         << bw_alg << ","                    //
         << bw_bus;
 

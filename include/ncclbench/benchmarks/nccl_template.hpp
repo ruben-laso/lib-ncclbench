@@ -27,9 +27,6 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
     MPICHECK(MPI_Reduce(&local_avg_time, &avg_time, 1, MPI_DOUBLE, MPI_SUM, 0,
                         MPI_COMM_WORLD));
 
-    std::clog << "Rank " << State::rank() << ". Min/Max/Avg time: " << min_time
-              << "/" << max_time << "/" << avg_time << std::endl;
-
     if (State::rank() == 0) {
         avg_time /= State::ranks();
         const double bytes_total_GB =
