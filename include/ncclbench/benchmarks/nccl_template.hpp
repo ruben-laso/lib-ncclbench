@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <mpi.h>
 
 #include "ncclbench/ncclbench.hpp"
@@ -13,7 +15,8 @@ namespace ncclbench::benchmark {
 namespace utils {
 template <typename BwFactor>
 auto gather_results(const Config &cfg, const Sizes &sizes,
-                    const double local_avg_time, BwFactor &bw_factor)
+                    const double local_avg_time, const size_t warmup_its,
+                    const size_t benchmark_its, const BwFactor &bw_factor)
     -> Results {
 
     double min_time, max_time, avg_time;
@@ -23,6 +26,9 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
                         MPI_COMM_WORLD));
     MPICHECK(MPI_Reduce(&local_avg_time, &avg_time, 1, MPI_DOUBLE, MPI_SUM, 0,
                         MPI_COMM_WORLD));
+
+    std::clog << "Rank " << State::rank() << ". Min/Max/Avg time: " << min_time
+              << "/" << max_time << "/" << avg_time << std::endl;
 
     if (State::rank() == 0) {
         avg_time /= State::ranks();
@@ -38,8 +44,8 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
         r.data_type = cfg.data_type;
         r.bytes_total = sizes.bytes_total;
         r.elements_per_rank = sizes.elements_per_rank;
-        r.iterations = cfg.iterations;
-        r.warmups = cfg.warmups;
+        r.benchmark_its = benchmark_its;
+        r.warmup_its = warmup_its;
         r.time_min = min_time;
         r.time_max = max_time;
         r.time_avg = avg_time;
@@ -52,10 +58,66 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
     return {};
 }
 
-static void sync_stream(const cudaStream_t stream) {
+static void sync_stream(cudaStream_t stream) {
     CUDACHECK(cudaStreamSynchronize(stream));
     MPICHECK(MPI_Barrier(MPI_COMM_WORLD));
 }
+
+template <typename NCCLCall>
+auto benchmark_loop_its(const size_t &its, const bool blocking,
+                        cudaStream_t &stream, NCCLCall &&nccl_call)
+    -> std::pair<size_t, double> {
+    const auto start = MPI_Wtime();
+    for (size_t i = 0; i < its; i++) {
+        nccl_call();
+        if (blocking) {
+            sync_stream(stream);
+        }
+    }
+    if (not blocking) {
+        sync_stream(stream);
+    }
+    const auto end = MPI_Wtime();
+
+    return {its, end - start};
+}
+
+template <typename NCCLCall>
+auto benchmark_loop_time(const double &time, const bool blocking,
+                         cudaStream_t &stream, NCCLCall &&nccl_call)
+    -> std::pair<size_t, double> {
+    if (not blocking) {
+        throw std::runtime_error(
+            "Time-based benchmarking requires blocking operations");
+    }
+
+    const auto start = MPI_Wtime();
+    auto end = MPI_Wtime();
+    size_t its = 0;
+    while (end - start < time) {
+        nccl_call();
+        sync_stream(stream);
+        its++;
+        end = MPI_Wtime();
+    }
+
+    return {its, end - start};
+}
+
+template <typename NCCLCall>
+auto benchmark_loop(const std::variant<size_t, double> &its_or_secs,
+                    const bool blocking, cudaStream_t &stream,
+                    NCCLCall &&nccl_call) -> std::pair<size_t, double> {
+    // Benchmark based on #iterations
+    if (std::holds_alternative<size_t>(its_or_secs)) {
+        const auto &its = std::get<size_t>(its_or_secs);
+        return benchmark_loop_its(its, blocking, stream, nccl_call);
+    }
+    // Benchmark based on time
+    const auto &secs = std::get<double>(its_or_secs);
+    return benchmark_loop_time(secs, blocking, stream, nccl_call);
+}
+
 } // namespace utils
 
 template <typename NCCLFunction, typename BwFactor>
@@ -80,34 +142,26 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
 
     // Benchmark function
     const auto nccl_datatype = types::str_to_nccl(cfg.data_type);
-
-    auto benchmark_loop = [&](const size_t iter) {
-        auto comm = State::nccl_comm();
-        for (size_t i = 0; i < iter; i++) {
-            ncclFunction(buffer_send, buffer_recv, sizes.elements_send,
-                         nccl_datatype, comm, stream);
-            if (cfg.blocking) {
-                utils::sync_stream(stream);
-            }
-        }
-        if (not cfg.blocking) {
-            utils::sync_stream(stream);
-        }
+    const auto comm = State::nccl_comm();
+    auto nccl_call = [&]() {
+        ncclFunction(buffer_send, buffer_recv, sizes.elements_send,
+                     nccl_datatype, comm, stream);
     };
 
     // Warmup
     MPICHECK(MPI_Barrier(State::mpi_comm()));
-    benchmark_loop(cfg.warmups);
+    const auto [warmup_its, warmup_time] = utils::benchmark_loop(
+        cfg.warmup_its_or_secs, cfg.blocking, stream, nccl_call);
 
     // Benchmark
     MPICHECK(MPI_Barrier(State::mpi_comm()));
-    const double start = MPI_Wtime();
-    benchmark_loop(cfg.iterations);
-    const double end = MPI_Wtime();
-    const double avg_time = (end - start) / static_cast<double>(cfg.iterations);
+    const auto [bench_its, bench_time] = utils::benchmark_loop(
+        cfg.benchmark_its_or_secs, cfg.blocking, stream, nccl_call);
+    const double avg_time = bench_time / bench_its;
 
     // Report performance metrics
-    const auto results = utils::gather_results(cfg, sizes, avg_time, bw_factor);
+    const auto results = utils::gather_results(cfg, sizes, avg_time, warmup_its,
+                                               bench_its, bw_factor);
 
     // Cleanup
     CUDACHECK(cudaStreamDestroy(stream));

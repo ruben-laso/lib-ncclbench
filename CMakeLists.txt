@@ -60,7 +60,6 @@ list(APPEND REL_HEADERS
     "include/ncclbench/utils/checks.hpp"
     "include/ncclbench/utils/host.hpp"
     "include/ncclbench/utils/nccl_functions.hpp"
-    "include/ncclbench/utils/output.hpp"
     "include/ncclbench/utils/types.hpp"
     "include/ncclbench/utils/utils.hpp"
 )

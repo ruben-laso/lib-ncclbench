@@ -63,7 +63,7 @@ auto Results::text() const -> std::string {
         << std::right                                        //
         << std::setw(LRG_WIDTH) << bytes_total               //
         << std::setw(MID_WIDTH) << elements_per_rank         //
-        << std::setw(MID_WIDTH) << iterations                //
+        << std::setw(MID_WIDTH) << benchmark_its             //
         << std::setw(MID_WIDTH) << time_min                  //
         << std::setw(MID_WIDTH) << time_avg                  //
         << std::setw(MID_WIDTH) << time_max                  //
@@ -81,7 +81,7 @@ auto Results::csv() const -> std::string {
         << data_type << ","                 //
         << bytes_total << ","               //
         << elements_per_rank << ","         //
-        << iterations << ","                //
+        << benchmark_its << ","             //
         << time_min << ","                  //
         << time_avg << ","                  //
         << time_max << ","                  //

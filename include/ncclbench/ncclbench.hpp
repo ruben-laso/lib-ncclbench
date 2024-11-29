@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <mpi.h>
@@ -21,8 +22,8 @@ struct NCCLBENCH_EXPORT Config {
     bool blocking;
     std::string data_type;
     size_t bytes_total;
-    size_t iterations;
-    size_t warmups;
+    std::variant<size_t, double> warmup_its_or_secs;
+    std::variant<size_t, double> benchmark_its_or_secs;
 };
 
 struct Sizes {
@@ -52,8 +53,8 @@ struct NCCLBENCH_EXPORT Results {
     std::string data_type;
     size_t bytes_total;
     size_t elements_per_rank;
-    size_t iterations;
-    size_t warmups;
+    size_t warmup_its;
+    size_t benchmark_its;
     double time_min;
     double time_max;
     double time_avg;
@@ -73,9 +74,7 @@ class State {
     class ncclCommWrapper {
       public:
         ncclComm_t comm;
-        ~ncclCommWrapper() {
-          ncclCommDestroy(comm);
-        }
+        ~ncclCommWrapper() { ncclCommDestroy(comm); }
     };
 
     std::optional<ncclCommWrapper> nccl_comm_{};
