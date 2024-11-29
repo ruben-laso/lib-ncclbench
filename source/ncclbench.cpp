@@ -14,9 +14,6 @@ namespace ncclbench {
 auto Results::header() -> std::string {
     std::ostringstream oss;
 
-    oss << "====================================================="
-           "===================================="
-        << '\n';
     oss << std::left                                //
         << std::setw(LRG_WIDTH) << "Operation"      //
         << std::setw(SML_WIDTH) << "Blocking"       //
