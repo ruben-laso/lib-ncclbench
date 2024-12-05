@@ -71,15 +71,6 @@ struct NCCLBENCH_EXPORT Results {
 class State {
     std::optional<MPI_Comm> mpi_comm_{};
 
-    class ncclCommWrapper {
-      public:
-        ncclComm_t comm;
-        ~ncclCommWrapper() { ncclCommDestroy(comm); }
-    };
-
-    std::optional<ncclCommWrapper> nccl_comm_{};
-    std::optional<ncclUniqueId> nccl_id_{};
-
     std::optional<int> ranks_{};
     std::optional<int> rank_{};
 

@@ -97,29 +97,6 @@ auto state() -> State & { return state_; }
 
 auto State::mpi_comm() -> MPI_Comm { return MPI_COMM_WORLD; }
 
-auto State::nccl_comm() -> ncclComm_t {
-    if (not state_.nccl_comm_.has_value()) {
-        const auto nccl_id = State::nccl_id();
-        state_.nccl_comm_ = {ncclCommWrapper{}};
-        ncclComm_t &comm = state_.nccl_comm_.value().comm;
-        NCCLCHECK(
-            ncclCommInitRank(&comm, State::ranks(), nccl_id, State::rank()));
-    }
-    return state_.nccl_comm_.value().comm;
-}
-
-auto State::nccl_id() -> ncclUniqueId {
-    if (not state_.nccl_id_.has_value()) {
-        ncclUniqueId id;
-        if (rank() == 0) {
-            NCCLCHECK(ncclGetUniqueId(&id));
-        }
-        MPICHECK(MPI_Bcast(&id, sizeof(id), MPI_BYTE, 0, State::mpi_comm()));
-        state_.nccl_id_ = {id};
-    }
-    return state_.nccl_id_.value();
-}
-
 auto State::ranks() -> int {
     if (not state_.ranks_.has_value()) {
         int ranks;

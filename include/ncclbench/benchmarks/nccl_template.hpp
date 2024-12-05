@@ -11,6 +11,23 @@
 namespace ncclbench::benchmark {
 
 namespace utils {
+
+inline auto get_nccl_id() -> ncclUniqueId {
+    ncclUniqueId id;
+    if (State::rank() == 0) {
+        NCCLCHECK(ncclGetUniqueId(&id));
+    }
+    MPICHECK(MPI_Bcast(&id, sizeof(id), MPI_BYTE, 0, State::mpi_comm()));
+    return id;
+}
+
+inline auto get_nccl_comm() -> ncclComm_t {
+    const auto nccl_id = get_nccl_id();
+    ncclComm_t comm;
+    NCCLCHECK(ncclCommInitRank(&comm, State::ranks(), nccl_id, State::rank()));
+    return comm;
+}
+
 template <typename BwFactor>
 auto gather_results(const Config &cfg, const Sizes &sizes,
                     const double local_avg_time, const size_t warmup_its,
@@ -137,7 +154,7 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
 
     // Benchmark function
     const auto nccl_datatype = types::str_to_nccl(cfg.data_type);
-    const auto comm = State::nccl_comm();
+    const auto comm = utils::get_nccl_comm();
     auto nccl_call = [&]() {
         ncclFunction(buffer_send, buffer_recv, sizes.elements_per_rank,
                      nccl_datatype, comm, stream);
