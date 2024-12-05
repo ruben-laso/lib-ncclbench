@@ -103,17 +103,21 @@ auto benchmark_loop_time(const double &time, const bool blocking,
             "Time-based benchmarking requires blocking operations");
     }
 
-    const auto start = MPI_Wtime();
-    auto end = MPI_Wtime();
     size_t its = 0;
-    while (end - start < time) {
+    double accum_time = 0.0;
+    bool stop = false;
+    while (not stop) {
+        const auto start = MPI_Wtime();
         nccl_call();
         sync_stream(stream);
+        const auto end = MPI_Wtime();
+        accum_time += end - start;
         its++;
-        end = MPI_Wtime();
+        stop = accum_time >= time;
+        MPICHECK(MPI_Bcast(&stop, 1, MPI_C_BOOL, 0, State::mpi_comm()));
     }
 
-    return {its, end - start};
+    return {its, accum_time};
 }
 
 template <typename NCCLCall>
