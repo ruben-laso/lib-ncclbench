@@ -180,6 +180,7 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
                                                bench_its, bw_factor);
 
     // Cleanup
+    NCCLCHECK(ncclCommDestroy(comm));
     CUDACHECK(cudaStreamDestroy(stream));
     CUDACHECK(cudaFree(buffer_send));
     CUDACHECK(cudaFree(buffer_recv));

@@ -69,17 +69,13 @@ struct NCCLBENCH_EXPORT Results {
 };
 
 class State {
-    std::optional<MPI_Comm> mpi_comm_{};
+    std::optional<int> ranks_ = std::nullopt;
+    std::optional<int> rank_ = std::nullopt;
 
-    std::optional<int> ranks_{};
-    std::optional<int> rank_{};
-
-    std::optional<int> gpu_assigned_{};
+    std::optional<int> gpu_assigned_ = std::nullopt;
 
   public:
     [[nodiscard]] static auto mpi_comm() -> MPI_Comm;
-    [[nodiscard]] static auto nccl_comm() -> ncclComm_t;
-    [[nodiscard]] static auto nccl_id() -> ncclUniqueId;
     [[nodiscard]] static auto ranks() -> int;
     [[nodiscard]] static auto rank() -> int;
     [[nodiscard]] static auto gpu_assigned() -> int;
