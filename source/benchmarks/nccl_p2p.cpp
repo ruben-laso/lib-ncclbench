@@ -5,13 +5,14 @@ namespace ncclbench::benchmark {
 auto nccl_p2p(const Config &cfg) -> Results {
     const auto rank = State::rank();
     const auto ranks = State::ranks();
+    const auto uranks = static_cast<size_t>(ranks);
 
     if (ranks % 2 != 0) {
         throw std::runtime_error("This benchmark requires an even number of "
                                  "processes.");
     }
 
-    const auto bytes_per_rank = cfg.bytes_total / ranks;
+    const auto bytes_per_rank = cfg.bytes_total / uranks;
     const auto elements_per_rank = types::bytes_to_elements(
         bytes_per_rank, types::str_to_mpi(cfg.data_type));
 

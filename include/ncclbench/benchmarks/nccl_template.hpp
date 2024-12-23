@@ -173,7 +173,7 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
     MPICHECK(MPI_Barrier(State::mpi_comm()));
     const auto [bench_its, bench_time] = utils::benchmark_loop(
         cfg.benchmark_its_or_secs, cfg.blocking, stream, nccl_call);
-    const double avg_time = bench_time / bench_its;
+    const double avg_time = bench_time / static_cast<double>(bench_its);
 
     // Report performance metrics
     const auto results = utils::gather_results(cfg, sizes, avg_time, warmup_its,

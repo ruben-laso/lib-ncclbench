@@ -121,8 +121,8 @@ auto State::gpu_assigned() -> int {
         const auto hostname = get_hostname();
         const uint64_t hostHash = get_host_hash(hostname.c_str());
 
-        std::vector<uint64_t> hostHashes(ranks());
-        hostHashes[rank()] = hostHash;
+        std::vector<uint64_t> hostHashes(static_cast<uint64_t>(ranks()));
+        hostHashes[static_cast<size_t>(rank())] = hostHash;
 
         MPICHECK(MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
                                hostHashes.data(), sizeof(uint64_t), MPI_BYTE,

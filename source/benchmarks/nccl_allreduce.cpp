@@ -26,7 +26,8 @@ auto nccl_allreduce(const Config &cfg) -> Results {
     };
 
     const auto bw_factor = []() {
-        return (2.0 * (State::ranks() - 1.0)) / State::ranks();
+        const auto dranks = static_cast<double>(State::ranks());
+        return (2.0 * (dranks - 1.0)) / dranks;
     };
 
     return run_benchmark(cfg, sizes, nccl_call, bw_factor);

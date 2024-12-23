@@ -8,11 +8,8 @@
 
 // hashing the host name as it's done in the nccl examples
 inline auto get_host_hash(const char *string) -> uint64_t {
-    uint64_t result = 5381;
-    for (int c = 0; string[c] != '\0'; c++) {
-        result = ((result << 5) + result) ^ string[c];
-    }
-    return result;
+    std::hash<std::string> hash_fn;
+    return hash_fn(string);
 }
 
 inline auto get_host_hash(const std::string &string) -> uint64_t {

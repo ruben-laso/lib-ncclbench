@@ -24,10 +24,10 @@
     {                                                                          \
         cudaError_t err = cmd;                                                 \
         if (err != cudaSuccess) {                                              \
-            const auto hostname = get_hostname();                              \
+            const auto check_hostname = get_hostname();                        \
             std::ignore =                                                      \
                 fprintf(stderr, "%s: Test CUDA failure %s:%d '%s'\n",          \
-                        hostname.c_str(), __FILE__, __LINE__,                  \
+                        check_hostname.c_str(), __FILE__, __LINE__,            \
                         cudaGetErrorString(err));                              \
         }                                                                      \
     }
@@ -37,12 +37,12 @@
     {                                                                          \
         ncclResult_t res = cmd;                                                \
         if (res != ncclSuccess) {                                              \
-            const auto hostname = get_hostname();                              \
+            const auto check_hostname = get_hostname();                        \
             std::ignore =                                                      \
                 fprintf(stderr,                                                \
                         "%s: Test NCCL failure %s:%d "                         \
                         "'%s / %s'\n",                                         \
-                        hostname.c_str(), __FILE__, __LINE__,                  \
+                        check_hostname.c_str(), __FILE__, __LINE__,            \
                         ncclGetErrorString(res), ncclGetLastError(NULL));      \
         }                                                                      \
     }
