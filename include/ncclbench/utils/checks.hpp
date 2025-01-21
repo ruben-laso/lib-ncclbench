@@ -15,9 +15,8 @@
             std::ignore =                                                      \
                 fprintf(stderr, "[%s:%d] MPI call failed with %d \n",          \
                         __FILE__, __LINE__, mpi_errno);                        \
-            exit(EXIT_FAILURE);                                                \
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);                           \
         }                                                                      \
-        assert(MPI_SUCCESS == mpi_errno);                                      \
     }
 
 #define CUDACHECK(cmd)                                                         \
@@ -29,6 +28,7 @@
                 fprintf(stderr, "%s: Test CUDA failure %s:%d '%s'\n",          \
                         check_hostname.c_str(), __FILE__, __LINE__,            \
                         cudaGetErrorString(err));                              \
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);                           \
         }                                                                      \
     }
 
@@ -44,6 +44,7 @@
                         "'%s / %s'\n",                                         \
                         check_hostname.c_str(), __FILE__, __LINE__,            \
                         ncclGetErrorString(res), ncclGetLastError(NULL));      \
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);                           \
         }                                                                      \
     }
 #else
