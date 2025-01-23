@@ -9,7 +9,7 @@ project(
     ncclbench
     VERSION 0.1.0
     DESCRIPTION "Library for benchmarking NCCL"
-    HOMEPAGE_URL ""
+    HOMEPAGE_URL "https://github.com/ruben-laso/lib-ncclbench"
     LANGUAGES CXX
 )
 
@@ -102,22 +102,8 @@ if (XCCL STREQUAL "NCCL")
   find_package(CUDA REQUIRED)
   list(APPEND LINK_LIBRARIES ${CUDA_LIBRARIES})
 
-  # Check if NCCL paths are manually specified
-  if (NOT NCCL_HOME)
-    find_package(NCCL REQUIRED)  # Only call find_package if paths are not provided
-  else ()
-    get_filename_component(NCCL_HOME "${NCCL_HOME}" ABSOLUTE "${CMAKE_SOURCE_DIR}")
-    get_filename_component(NCCL_INCLUDE_DIRS "${NCCL_HOME}/include" ABSOLUTE "${CMAKE_SOURCE_DIR}")
-    get_filename_component(NCCL_LIB_DIR "${NCCL_HOME}/lib" ABSOLUTE "${CMAKE_SOURCE_DIR}")
+  find_package(NCCL REQUIRED)  # Only call find_package if paths are not provided
 
-    # include_directories(${NCCL_INCLUDE_DIR})
-    SET(NCCL_LIBNAME "nccl")
-    find_library(NCCL_LIBRARIES NAMES ${NCCL_LIBNAME} HINTS ${NCCL_LIB_DIR} NO_DEFAULT_PATH)
-
-    message(STATUS "NCCL_HOME: " ${NCCL_HOME})
-    message(STATUS "NCCL_INCLUDE_DIRS: " ${NCCL_INCLUDE_DIRS})
-    message(STATUS "NCCL_LIRARIES: " ${NCCL_LIBRARIES})
-  endif ()
   # if artifact "nccl" exists, add it to LINK_LIBRARIES
   if (TARGET nccl)
     list(APPEND LINK_LIBRARIES nccl)  # Ensure 'nccl' is linked

@@ -21,6 +21,10 @@ cmake -S . -B build
 cmake --build build --config Release
 ```
 
+There are some interesting options that can be passed to CMake:
+- `-DNCCL_ROOT=<path>`: Path to the root directory of the NCCL installation, if you want to use a custom installation.
+- `-DUSE_STATIC_NCCL=ON`: Link statically against NCCL.
+
 ### Building with MSVC
 
 Note that MSVC by default is not standards compliant and you need to pass some
