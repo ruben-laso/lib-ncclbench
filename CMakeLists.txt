@@ -29,11 +29,6 @@ endif ()
 
 message(STATUS "Using ${XCCL} as the library to benchmark")
 
-set(NCCL_HOME "" CACHE PATH "Path to the NCCL installation directory")
-if (NCCL_HOME)
-  message(STATUS "Using NCCL from ${NCCL_HOME}")
-endif ()
-
 # ---- Declare sources ----
 
 list(APPEND REL_SOURCES
