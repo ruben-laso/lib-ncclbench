@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/xccl")
 include(cmake/prelude.cmake)
 
 project(
-    ncclbench
+    libncclbench
     VERSION 0.1.0
     DESCRIPTION "Library for benchmarking NCCL"
     HOMEPAGE_URL "https://github.com/ruben-laso/lib-ncclbench"
@@ -118,59 +118,59 @@ endif ()
 # ---- Declare library ----
 
 if (XCCL STREQUAL "NCCL")
-  cuda_add_library(ncclbench_ncclbench ${SOURCES})
+  cuda_add_library(libncclbench_libncclbench ${SOURCES})
 else ()
-  add_library(ncclbench_ncclbench ${SOURCES})
+  add_library(libncclbench_libncclbench ${SOURCES})
 endif ()
 
-add_library(ncclbench::ncclbench ALIAS ncclbench_ncclbench)
+add_library(libncclbench::libncclbench ALIAS libncclbench_libncclbench)
 
 include(GenerateExportHeader)
 generate_export_header(
-    ncclbench_ncclbench
+    libncclbench_libncclbench
     BASE_NAME ncclbench
     EXPORT_FILE_NAME export/ncclbench/ncclbench_export.hpp
     CUSTOM_CONTENT_FROM_VARIABLE pragma_suppress_c4251
 )
 
 if (NOT BUILD_SHARED_LIBS)
-  target_compile_definitions(ncclbench_ncclbench PUBLIC NCCLBENCH_STATIC_DEFINE)
+  target_compile_definitions(libncclbench_libncclbench PUBLIC LIBNCCLBENCH_STATIC_DEFINE)
 endif ()
 
 set_target_properties(
-    ncclbench_ncclbench PROPERTIES
+    libncclbench_libncclbench PROPERTIES
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN YES
     VERSION "${PROJECT_VERSION}"
     SOVERSION "${PROJECT_VERSION_MAJOR}"
-    EXPORT_NAME ncclbench
+    EXPORT_NAME libncclbench
     OUTPUT_NAME ncclbench
 )
 
 target_include_directories(
-    ncclbench_ncclbench ${warning_guard}
+    libncclbench_libncclbench ${warning_guard}
     PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
 )
 
 target_include_directories(
-    ncclbench_ncclbench SYSTEM
+    libncclbench_libncclbench SYSTEM
     PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/export>"
 )
 
-target_compile_features(ncclbench_ncclbench PUBLIC cxx_std_17)
+target_compile_features(libncclbench_libncclbench PUBLIC cxx_std_17)
 
 # ---- Link dependencies ----
 
 foreach (LIBRARY IN ITEMS ${LINK_LIBRARIES})
   message(STATUS "Linking to library: ${LIBRARY}")
-  target_link_libraries(ncclbench_ncclbench ${LIBRARY})
+  target_link_libraries(libncclbench_libncclbench ${LIBRARY})
 endforeach ()
 
 foreach (INCLUDE_DIR IN ITEMS ${INCLUDE_DIRS})
   message(STATUS "Including directory: ${INCLUDE_DIR}")
-  target_include_directories(ncclbench_ncclbench PUBLIC ${INCLUDE_DIR})
+  target_include_directories(libncclbench_libncclbench PUBLIC ${INCLUDE_DIR})
 endforeach ()
 
 # ---- Install rules ----
@@ -182,7 +182,7 @@ endif ()
 # ---- Examples ----
 
 if (PROJECT_IS_TOP_LEVEL)
-  option(BUILD_EXAMPLES "Build examples tree." "${ncclbench_DEVELOPER_MODE}")
+  option(BUILD_EXAMPLES "Build examples tree." "${libncclbench_DEVELOPER_MODE}")
   if (BUILD_EXAMPLES)
     add_subdirectory(example)
   endif ()
@@ -190,12 +190,12 @@ endif ()
 
 # ---- Developer mode ----
 
-if (NOT ncclbench_DEVELOPER_MODE)
+if (NOT libncclbench_DEVELOPER_MODE)
   return()
 elseif (NOT PROJECT_IS_TOP_LEVEL)
   message(
       AUTHOR_WARNING
-      "Developer mode is intended for developers of ncclbench"
+      "Developer mode is intended for developers of libncclbench"
   )
 endif ()
 

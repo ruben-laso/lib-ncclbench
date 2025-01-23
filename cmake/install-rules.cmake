@@ -1,6 +1,6 @@
 if(PROJECT_IS_TOP_LEVEL)
   set(
-      CMAKE_INSTALL_INCLUDEDIR "include/ncclbench-${PROJECT_VERSION}"
+      CMAKE_INSTALL_INCLUDEDIR "include/libncclbench-${PROJECT_VERSION}"
       CACHE STRING ""
   )
   set_property(CACHE CMAKE_INSTALL_INCLUDEDIR PROPERTY TYPE PATH)
@@ -10,26 +10,26 @@ include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
 # find_package(<package>) call for consumers to find this project
-set(package ncclbench)
+set(package libncclbench)
 
 install(
     DIRECTORY
     include/
     "${PROJECT_BINARY_DIR}/export/"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT ncclbench_Development
+    COMPONENT libncclbench_Development
 )
 
 install(
-    TARGETS ncclbench_ncclbench
-    EXPORT ncclbenchTargets
+    TARGETS libncclbench_libncclbench
+    EXPORT libncclbenchTargets
     RUNTIME #
-    COMPONENT ncclbench_Runtime
+    COMPONENT libncclbench_Runtime
     LIBRARY #
-    COMPONENT ncclbench_Runtime
-    NAMELINK_COMPONENT ncclbench_Development
+    COMPONENT libncclbench_Runtime
+    NAMELINK_COMPONENT libncclbench_Development
     ARCHIVE #
-    COMPONENT ncclbench_Development
+    COMPONENT libncclbench_Development
     INCLUDES #
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
@@ -41,30 +41,30 @@ write_basic_package_version_file(
 
 # Allow package maintainers to freely override the path for the configs
 set(
-    ncclbench_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${package}"
+    libncclbench_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${package}"
     CACHE STRING "CMake package config location relative to the install prefix"
 )
-set_property(CACHE ncclbench_INSTALL_CMAKEDIR PROPERTY TYPE PATH)
-mark_as_advanced(ncclbench_INSTALL_CMAKEDIR)
+set_property(CACHE libncclbench_INSTALL_CMAKEDIR PROPERTY TYPE PATH)
+mark_as_advanced(libncclbench_INSTALL_CMAKEDIR)
 
 install(
     FILES cmake/install-config.cmake
-    DESTINATION "${ncclbench_INSTALL_CMAKEDIR}"
+    DESTINATION "${libncclbench_INSTALL_CMAKEDIR}"
     RENAME "${package}Config.cmake"
-    COMPONENT ncclbench_Development
+    COMPONENT libncclbench_Development
 )
 
 install(
     FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
-    DESTINATION "${ncclbench_INSTALL_CMAKEDIR}"
-    COMPONENT ncclbench_Development
+    DESTINATION "${libncclbench_INSTALL_CMAKEDIR}"
+    COMPONENT libncclbench_Development
 )
 
 install(
-    EXPORT ncclbenchTargets
-    NAMESPACE ncclbench::
-    DESTINATION "${ncclbench_INSTALL_CMAKEDIR}"
-    COMPONENT ncclbench_Development
+    EXPORT libncclbenchTargets
+    NAMESPACE libncclbench::
+    DESTINATION "${libncclbench_INSTALL_CMAKEDIR}"
+    COMPONENT libncclbench_Development
 )
 
 if(PROJECT_IS_TOP_LEVEL)

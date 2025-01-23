@@ -1,6 +1,6 @@
-# ncclbench
+# `libncclbench`
 
-This is the ncclbench project.
+This is the `libncclbench` project.
 
 # Building and installing
 

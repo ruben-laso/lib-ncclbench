@@ -1,1 +1,1 @@
-include("${CMAKE_CURRENT_LIST_DIR}/ncclbenchTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/libncclbenchTargets.cmake")
