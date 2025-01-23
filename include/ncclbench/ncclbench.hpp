@@ -22,8 +22,10 @@ struct NCCLBENCH_EXPORT Config {
     bool blocking;
     std::string data_type;
     size_t bytes_total;
-    std::variant<size_t, double> warmup_its_or_secs;
-    std::variant<size_t, double> benchmark_its_or_secs;
+    std::optional<size_t> warmup_its;
+    std::optional<size_t> benchmark_its;
+    std::optional<double> warmup_secs;
+    std::optional<double> benchmark_secs;
 };
 
 struct Sizes {

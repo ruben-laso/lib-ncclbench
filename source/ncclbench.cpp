@@ -14,18 +14,18 @@ namespace ncclbench {
 auto Results::header() -> std::string {
     std::ostringstream oss;
 
-    oss << std::left                                //
-        << std::setw(LRG_WIDTH) << "Operation"      //
-        << std::setw(SML_WIDTH) << "Blocking"       //
-        << std::setw(MID_WIDTH) << "Data_Type"      //
-        << std::right                               //
-        << std::setw(LRG_WIDTH) << "Msg_Size_Bytes" //
-        << std::setw(MID_WIDTH) << "#Elements"      //
-        << std::setw(MID_WIDTH) << "Iterations"     //
-        << std::setw(MID_WIDTH) << "Min_Time (us)"  //
-        << std::setw(MID_WIDTH) << "Avg_Time (us)"  //
-        << std::setw(MID_WIDTH) << "Max_Time (us)"  //
-        << std::setw(MID_WIDTH) << "algBW (GB/s)"   //
+    oss << std::left                               //
+        << std::setw(LRG_WIDTH) << "Operation"     //
+        << std::setw(SML_WIDTH) << "Blocking"      //
+        << std::setw(MID_WIDTH) << "Data Type"     //
+        << std::right                              //
+        << std::setw(LRG_WIDTH) << "Msg Size (B)"  //
+        << std::setw(MID_WIDTH) << "#Elements"     //
+        << std::setw(MID_WIDTH) << "Iterations"    //
+        << std::setw(MID_WIDTH) << "Min_Time (us)" //
+        << std::setw(MID_WIDTH) << "Avg_Time (us)" //
+        << std::setw(MID_WIDTH) << "Max_Time (us)" //
+        << std::setw(MID_WIDTH) << "algBW (GB/s)"  //
         << std::setw(MID_WIDTH) << "busBW (GB/s)";
 
     return oss.str();
@@ -40,11 +40,11 @@ auto Results::csv_header() -> std::string {
         << "Msg_Size_Bytes," //
         << "#Elements,"      //
         << "Iterations,"     //
-        << "Min_Time (us),"  //
-        << "Avg_Time (us),"  //
-        << "Max_Time (us),"  //
-        << "algBW (GB/s),"   //
-        << "busBW (GB/s)";
+        << "Min_Time_us,"    //
+        << "Avg_Time_us,"    //
+        << "Max_Time_us,"    //
+        << "algBW_GBps,"     //
+        << "busBW_GBps";
 
     return oss.str();
 }

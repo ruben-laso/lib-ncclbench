@@ -121,17 +121,48 @@ auto benchmark_loop_time(const double &time, const bool blocking,
 }
 
 template <typename NCCLCall>
-auto benchmark_loop(const std::variant<size_t, double> &its_or_secs,
-                    const bool blocking, cudaStream_t &stream,
-                    NCCLCall &&nccl_call) -> std::pair<size_t, double> {
-    // Benchmark based on #iterations
-    if (std::holds_alternative<size_t>(its_or_secs)) {
-        const auto &its = std::get<size_t>(its_or_secs);
-        return benchmark_loop_its(its, blocking, stream, nccl_call);
+auto benchmark_loop_its_and_time(const size_t &max_its, const double &max_time,
+                                 const bool blocking, cudaStream_t &stream,
+                                 NCCLCall &&nccl_call)
+    -> std::pair<size_t, double> {
+    if (not blocking) {
+        throw std::runtime_error(
+            "Time-based benchmarking requires blocking operations");
     }
-    // Benchmark based on time
-    const auto &secs = std::get<double>(its_or_secs);
-    return benchmark_loop_time(secs, blocking, stream, nccl_call);
+
+    double accum_time = 0.0;
+    size_t its = 0;
+    bool stop = false;
+    for (its = 0; its < max_its and not stop; its++) {
+        const auto start = MPI_Wtime();
+        nccl_call();
+        sync_stream(stream);
+        const auto end = MPI_Wtime();
+        accum_time += end - start;
+        stop = accum_time >= max_time;
+        MPICHECK(MPI_Bcast(&stop, 1, MPI_C_BOOL, 0, State::mpi_comm()));
+    }
+
+    return {its, accum_time};
+}
+
+template <typename NCCLCall>
+auto benchmark_loop(const std::optional<size_t> &its,
+                    const std::optional<double> &secs, const bool blocking,
+                    cudaStream_t &stream, NCCLCall &&nccl_call)
+    -> std::pair<size_t, double> {
+    if (its.has_value() and secs.has_value()) {
+        return benchmark_loop_its_and_time(its.value(), secs.value(), blocking,
+                                           stream, nccl_call);
+    }
+    if (its.has_value()) {
+        return benchmark_loop_its(its.value(), blocking, stream, nccl_call);
+    }
+    if (secs.has_value()) {
+        return benchmark_loop_time(secs.value(), blocking, stream, nccl_call);
+    }
+    // Something went wrong
+    throw std::runtime_error("Invalid benchmarking configuration");
 }
 
 } // namespace utils
@@ -167,12 +198,12 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
     // Warmup
     MPICHECK(MPI_Barrier(State::mpi_comm()));
     const auto [warmup_its, warmup_time] = utils::benchmark_loop(
-        cfg.warmup_its_or_secs, cfg.blocking, stream, nccl_call);
+        cfg.warmup_its, cfg.warmup_secs, cfg.blocking, stream, nccl_call);
 
     // Benchmark
     MPICHECK(MPI_Barrier(State::mpi_comm()));
     const auto [bench_its, bench_time] = utils::benchmark_loop(
-        cfg.benchmark_its_or_secs, cfg.blocking, stream, nccl_call);
+        cfg.benchmark_its, cfg.benchmark_secs, cfg.blocking, stream, nccl_call);
     const double avg_time = bench_time / static_cast<double>(bench_its);
 
     // Report performance metrics
