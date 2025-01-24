@@ -162,7 +162,8 @@ auto benchmark_loop(const std::optional<size_t> &its,
         return benchmark_loop_time(secs.value(), blocking, stream, nccl_call);
     }
     // Something went wrong
-    throw std::runtime_error("Invalid benchmarking configuration");
+    throw std::runtime_error(
+        "Invalid benchmarking configuration. Either its or secs must be set");
 }
 
 } // namespace utils

@@ -75,7 +75,7 @@ auto main(int argc, char *argv[]) -> int {
     config.operation = options.operation;
     config.data_type = options.data_type;
     config.blocking = options.blocking;
-    if (options.warmup_its > 0) {
+    if (options.warmup_its >= 0) {
         config.warmup_its = options.warmup_its;
     }
     if (options.warmup_secs > 0.0) {
