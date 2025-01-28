@@ -32,4 +32,9 @@ static void init_data(void *ptr, MPI_Datatype datatype, size_t count) {
         throw std::runtime_error("Unsupported datatype");
     }
 }
+
+template <typename T> constexpr auto to_GB(const T bytes) -> double {
+    constexpr auto GB = static_cast<double>(1 << 30);
+    return static_cast<double>(bytes) / GB;
+}
 } // namespace ncclbench::utils

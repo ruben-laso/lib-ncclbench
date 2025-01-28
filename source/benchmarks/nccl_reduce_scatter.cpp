@@ -2,7 +2,7 @@
 
 namespace ncclbench::benchmark {
 
-auto nccl_reduce_scatter(const Config &cfg) -> Results {
+auto nccl_reduce_scatter(const Config &cfg) -> std::vector<Result> {
     static constexpr size_t ALIGN = 4U;
 
     const auto uranks = static_cast<size_t>(State::ranks());

@@ -2,7 +2,7 @@
 
 namespace ncclbench::benchmark {
 
-auto nccl_p2p(const Config &cfg) -> Results {
+auto nccl_p2p(const Config &cfg) -> std::vector<Result> {
     const auto rank = State::rank();
     const auto ranks = State::ranks();
     const auto uranks = static_cast<size_t>(ranks);

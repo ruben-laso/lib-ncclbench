@@ -2,7 +2,7 @@
 
 namespace ncclbench::benchmark {
 
-auto nccl_allgather(const Config &cfg) -> Results {
+auto nccl_allgather(const Config &cfg) -> std::vector<Result> {
     static constexpr size_t ALIGN = 4;
 
     const auto uranks = static_cast<size_t>(State::ranks());

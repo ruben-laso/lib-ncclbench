@@ -2,7 +2,7 @@
 
 namespace ncclbench::benchmark {
 
-auto nccl_broadcast(const Config &cfg) -> Results {
+auto nccl_broadcast(const Config &cfg) -> std::vector<Result> {
     const auto bytes_per_rank = cfg.bytes_total;
     const auto elements_per_rank = types::bytes_to_elements(
         bytes_per_rank, types::str_to_mpi(cfg.data_type));

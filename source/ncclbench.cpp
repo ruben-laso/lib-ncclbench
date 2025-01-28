@@ -11,7 +11,7 @@
 #include "ncclbench/benchmarks/benchmarks.hpp"
 
 namespace ncclbench {
-auto Results::header() -> std::string {
+auto Result::header() -> std::string {
     std::ostringstream oss;
 
     oss << std::left                               //
@@ -31,7 +31,7 @@ auto Results::header() -> std::string {
     return oss.str();
 }
 
-auto Results::csv_header() -> std::string {
+auto Result::csv_header() -> std::string {
     std::ostringstream oss;
 
     oss << "Operation,"      //
@@ -49,7 +49,7 @@ auto Results::csv_header() -> std::string {
     return oss.str();
 }
 
-auto Results::text() const -> std::string {
+auto Result::text() const -> std::string {
     static constexpr double SECS_TO_USECS = 1.0E6;
 
     std::ostringstream oss;
@@ -72,7 +72,7 @@ auto Results::text() const -> std::string {
     return oss.str();
 }
 
-auto Results::csv() const -> std::string {
+auto Result::csv() const -> std::string {
     static constexpr double SECS_TO_USECS = 1.0E6;
 
     std::ostringstream oss;
@@ -139,7 +139,7 @@ auto State::gpu_assigned() -> int {
     return state_.gpu_assigned_.value();
 }
 
-auto run(const Config &cfg) -> Results {
+auto run(const Config &cfg) -> std::vector<Result> {
     // Force GPU assignment (if not already done)
     std::ignore = State::gpu_assigned();
 
@@ -163,8 +163,8 @@ auto run(const Config &cfg) -> Results {
     }
 }
 
-auto run(std::vector<Config> &cfgs) -> std::vector<Results> {
-    std::vector<Results> results;
+auto run(std::vector<Config> &cfgs) -> std::vector<std::vector<Result>> {
+    std::vector<std::vector<Result>> results;
     results.reserve(cfgs.size());
 
     for (auto &cfg : cfgs) {

@@ -41,21 +41,18 @@ struct Sizes {
     size_t elements_recv;
 };
 
-struct NCCLBENCH_EXPORT Results {
-  private:
+struct NCCLBENCH_EXPORT Result {
     static constexpr size_t SML_WIDTH = 10;
     static constexpr size_t MID_WIDTH = 15;
     static constexpr size_t LRG_WIDTH = 20;
 
-    static constexpr size_t PRECISION = 2;
+    static constexpr size_t PRECISION = 4;
 
-  public:
     std::string operation;
     bool blocking;
     std::string data_type;
     size_t bytes_total;
     size_t elements_per_rank;
-    size_t warmup_its;
     size_t benchmark_its;
     double time_min;
     double time_max;
@@ -83,8 +80,9 @@ class State {
     [[nodiscard]] static auto gpu_assigned() -> int;
 };
 
-NCCLBENCH_EXPORT auto run(const Config &cfg) -> Results;
-NCCLBENCH_EXPORT auto run(std::vector<Config> &cfgs) -> std::vector<Results>;
+NCCLBENCH_EXPORT auto run(const Config &cfg) -> std::vector<Result>;
+NCCLBENCH_EXPORT auto run(std::vector<Config> &cfgs)
+    -> std::vector<std::vector<Result>>;
 
 NCCLBENCH_EXPORT auto state() -> State &;
 
