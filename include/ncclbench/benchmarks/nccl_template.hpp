@@ -8,6 +8,7 @@
 #include "ncclbench/utils/types.hpp"
 #include "ncclbench/utils/utils.hpp"
 
+#include <iostream>
 #include <limits>
 
 namespace ncclbench::benchmark {
