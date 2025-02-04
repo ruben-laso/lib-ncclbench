@@ -5,6 +5,7 @@
 #include <cuda.h>
 #include <mpi.h>
 
+#include <tuple>
 #include <utility>
 
 #include "../xccl.hpp"

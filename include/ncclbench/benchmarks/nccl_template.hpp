@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <limits>
+#include <tuple>
 #include <utility>
 
 namespace ncclbench::benchmark {
