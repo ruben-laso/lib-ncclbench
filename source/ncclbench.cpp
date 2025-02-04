@@ -142,6 +142,7 @@ auto State::gpu_assigned() -> int {
 }
 
 auto run(const Config &cfg) -> std::vector<Result> {
+    using namespace functions;
     // Force GPU assignment (if not already done)
     std::ignore = State::gpu_assigned();
 

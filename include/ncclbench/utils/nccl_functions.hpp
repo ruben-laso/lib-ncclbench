@@ -3,7 +3,10 @@
 #include <cstdint>
 #include <stdexcept>
 
-namespace ncclbench {
+#include "ncclbench/ncclbench_export.hpp"
+
+namespace ncclbench::functions {
+
 static const char *const NCCL_ALL_GATHER = "ncclAllGather";
 static const char *const NCCL_ALL_REDUCE = "ncclAllReduce";
 static const char *const NCCL_ALL_TO_ALL = "ncclAllToAll";
@@ -19,8 +22,12 @@ enum class NCCL_FUNCTIONS : uint8_t {
     BROADCAST,
     POINT_TO_POINT,
     REDUCE_SCATTER,
-    REDUCE
+    REDUCE,
+    NCCL_FUNCTIONS_MAX
 };
+
+static constexpr size_t NUM_NCCL_FUNCTIONS =
+    static_cast<size_t>(NCCL_FUNCTIONS::NCCL_FUNCTIONS_MAX);
 
 inline auto string_to_function(std::string const &function) -> NCCL_FUNCTIONS {
     if (function == NCCL_ALL_GATHER) {
@@ -67,4 +74,4 @@ inline auto function_to_string(NCCL_FUNCTIONS const function)
     }
     throw std::runtime_error{"Unknown NCCL function"};
 }
-} // namespace ncclbench
+} // namespace ncclbench::functions

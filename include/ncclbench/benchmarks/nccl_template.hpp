@@ -218,7 +218,7 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
     CUDACHECK(cudaMalloc(&buffer_send, sizes.bytes_send));
     CUDACHECK(cudaMalloc(&buffer_recv, sizes.bytes_recv));
     void *buffer_host = malloc(sizes.bytes_send);
-    ncclbench::utils::init_data(buffer_host, types::str_to_mpi(cfg.data_type),
+    ncclbench::utils::init_data(buffer_host, types::str_to_nccl(cfg.data_type),
                                 sizes.elements_send);
     CUDACHECK(cudaMemcpy(buffer_send, buffer_host, sizes.bytes_send,
                          cudaMemcpyHostToDevice));

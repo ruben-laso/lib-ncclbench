@@ -9,13 +9,41 @@
 
 #include "ncclbench/ncclbench_export.hpp"
 
-#if defined(USE_RCCL)
-#include <rccl/rccl.h>
-#else // USE_NCCL by default
-#include <nccl.h>
-#endif
+#include "ncclbench/utils/nccl_functions.hpp"
+#include "ncclbench/utils/types.hpp"
+
+#include "ncclbench/xccl.hpp"
 
 namespace ncclbench {
+
+NCCLBENCH_EXPORT
+static constexpr std::array<const char *const, functions::NUM_NCCL_FUNCTIONS>
+    SUPPORTED_OPERATIONS = {
+        functions::NCCL_ALL_GATHER,     //
+        functions::NCCL_ALL_REDUCE,     //
+        functions::NCCL_ALL_TO_ALL,     //
+        functions::NCCL_BROADCAST,      //
+        functions::NCCL_POINT_TO_POINT, //
+        functions::NCCL_REDUCE_SCATTER, //
+        functions::NCCL_REDUCE,         //
+};
+
+NCCLBENCH_EXPORT
+static constexpr std::array<const char *const, types::NUM_NCCL_TYPES>
+    SUPPORTED_DATA_TYPES = {
+        types::NCCL_INT_8,   //
+        types::NCCL_UINT_8,  //
+        types::NCCL_INT_32,  //
+        types::NCCL_UINT_32, //
+        types::NCCL_INT_64,  //
+        types::NCCL_UINT_64, //
+        types::NCCL_HALF,    //
+        types::NCCL_FLOAT,   //
+        types::NCCL_DOUBLE,  //
+#if defined(NCCL_BF16_TYPES_EXIST)
+        types::NCCL_BFLOAT16, //
+#endif
+};
 
 struct NCCLBENCH_EXPORT Config {
     std::string operation;

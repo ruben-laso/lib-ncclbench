@@ -9,7 +9,7 @@ auto nccl_reduce_scatter(const Config &cfg) -> std::vector<Result> {
 
     const auto bytes_per_rank = cfg.bytes_total / (uranks * ALIGN) * ALIGN;
     const auto elements_per_rank = types::bytes_to_elements(
-        bytes_per_rank, types::str_to_mpi(cfg.data_type));
+        bytes_per_rank, types::str_to_nccl(cfg.data_type));
 
     Sizes sizes{};
 

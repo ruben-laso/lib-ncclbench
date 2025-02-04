@@ -248,11 +248,25 @@ auto main(int argc, char *argv[]) -> int {
 
     Options options;
 
+    const std::string operations =
+        std::accumulate(ncclbench::SUPPORTED_OPERATIONS.begin(),
+                        ncclbench::SUPPORTED_OPERATIONS.end(), std::string{},
+                        [](const std::string &a, const std::string &b) {
+                            return a.empty() ? b : a + " " + b;
+                        });
+
+    const std::string data_types =
+        std::accumulate(ncclbench::SUPPORTED_DATA_TYPES.begin(),
+                        ncclbench::SUPPORTED_DATA_TYPES.end(), std::string{},
+                        [](const std::string &a, const std::string &b) {
+                            return a.empty() ? b : a + " " + b;
+                        });
+
     app.add_option("-o,--operation", options.operation,
-                   "NCCL operation. E.g. ncclAllReduce")
+                   "NCCL operation. Select from: [" + operations + "]")
         ->required();
     app.add_option("-d,--data-type", options.data_type,
-                   "Data type: [byte, char, int, float, double]")
+                   "Data type. Select from: [" + data_types + "]")
         ->required();
     app.add_option("-s,--sizes", options.sizes_bytes,
                    "Size(s) in bytes. E.g.: 1024 2048 4096")

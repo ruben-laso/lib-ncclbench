@@ -8,7 +8,7 @@ auto nccl_alltoall(const Config &cfg) -> std::vector<Result> {
 
     const auto bytes_per_rank = cfg.bytes_total / uranks;
     const auto elements_per_rank = types::bytes_to_elements(
-        bytes_per_rank, types::str_to_mpi(cfg.data_type));
+        bytes_per_rank, types::str_to_nccl(cfg.data_type));
 
     Sizes sizes{};
 
@@ -24,7 +24,7 @@ auto nccl_alltoall(const Config &cfg) -> std::vector<Result> {
                                size_t count, ncclDataType_t datatype,
                                ncclComm_t comm, cudaStream_t stream) {
         const auto rankOffset =
-            count * types::size_of(types::str_to_mpi(cfg.data_type));
+            count * types::size_of(types::str_to_nccl(cfg.data_type));
 
 #if NCCL_MAJOR >= 2 && NCCL_MINOR >= 7
         NCCLCHECK(ncclGroupStart());
