@@ -13,6 +13,9 @@ project(
     LANGUAGES CXX
 )
 
+# Set C++ standard to C++17
+set(CMAKE_CXX_STANDARD 17)
+
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
