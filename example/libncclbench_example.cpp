@@ -179,27 +179,29 @@ struct ResultSummary {
     auto text() -> std::string {
         using namespace ncclbench;
 
+        static constexpr double SECS_TO_USECS = 1.0E6;
+
         std::ostringstream oss;
 
-        oss << std::left                                                 //
-            << std::setw(Result::LRG_WIDTH) << operation                 //
-            << std::setw(Result::SML_WIDTH) << (blocking ? "yes" : "no") //
-            << std::setw(Result::MID_WIDTH) << data_type                 //
-            << std::right                                                //
-            << std::setw(Result::LRG_WIDTH) << bytes_total               //
-            << std::setw(Result::MID_WIDTH) << elements_per_rank         //
-            << std::setw(Result::MID_WIDTH) << benchmark_its             //
-            << std::setw(Result::MID_WIDTH) << time.min                  //
-            << std::setw(Result::MID_WIDTH) << time.max                  //
-            << std::setw(Result::MID_WIDTH) << time.avg                  //
-            << std::setw(Result::MID_WIDTH) << time.stddev               //
-            << std::setw(Result::LRG_WIDTH) << bw_alg.min                //
-            << std::setw(Result::LRG_WIDTH) << bw_alg.max                //
-            << std::setw(Result::LRG_WIDTH) << bw_alg.avg                //
-            << std::setw(Result::LRG_WIDTH) << bw_alg.stddev             //
-            << std::setw(Result::LRG_WIDTH) << bw_bus.min                //
-            << std::setw(Result::LRG_WIDTH) << bw_bus.max                //
-            << std::setw(Result::LRG_WIDTH) << bw_bus.avg                //
+        oss << std::left                                                   //
+            << std::setw(Result::LRG_WIDTH) << operation                   //
+            << std::setw(Result::SML_WIDTH) << (blocking ? "yes" : "no")   //
+            << std::setw(Result::MID_WIDTH) << data_type                   //
+            << std::right                                                  //
+            << std::setw(Result::LRG_WIDTH) << bytes_total                 //
+            << std::setw(Result::MID_WIDTH) << elements_per_rank           //
+            << std::setw(Result::MID_WIDTH) << benchmark_its               //
+            << std::setw(Result::MID_WIDTH) << time.min * SECS_TO_USECS    //
+            << std::setw(Result::MID_WIDTH) << time.max * SECS_TO_USECS    //
+            << std::setw(Result::MID_WIDTH) << time.avg * SECS_TO_USECS    //
+            << std::setw(Result::MID_WIDTH) << time.stddev * SECS_TO_USECS //
+            << std::setw(Result::LRG_WIDTH) << bw_alg.min                  //
+            << std::setw(Result::LRG_WIDTH) << bw_alg.max                  //
+            << std::setw(Result::LRG_WIDTH) << bw_alg.avg                  //
+            << std::setw(Result::LRG_WIDTH) << bw_alg.stddev               //
+            << std::setw(Result::LRG_WIDTH) << bw_bus.min                  //
+            << std::setw(Result::LRG_WIDTH) << bw_bus.max                  //
+            << std::setw(Result::LRG_WIDTH) << bw_bus.avg                  //
             << std::setw(Result::LRG_WIDTH) << bw_bus.stddev;
 
         return oss.str();
@@ -208,23 +210,25 @@ struct ResultSummary {
     auto csv() -> std::string {
         std::ostringstream oss;
 
-        oss << operation << ","                 //
-            << (blocking ? "yes" : "no") << "," //
-            << data_type << ","                 //
-            << bytes_total << ","               //
-            << elements_per_rank << ","         //
-            << benchmark_its << ","             //
-            << time.min << ","                  //
-            << time.max << ","                  //
-            << time.avg << ","                  //
-            << time.stddev << ","               //
-            << bw_alg.min << ","                //
-            << bw_alg.max << ","                //
-            << bw_alg.avg << ","                //
-            << bw_alg.stddev << ","             //
-            << bw_bus.min << ","                //
-            << bw_bus.max << ","                //
-            << bw_bus.avg << ","                //
+        static constexpr double SECS_TO_USECS = 1.0E6;
+
+        oss << operation << ","                   //
+            << (blocking ? "yes" : "no") << ","   //
+            << data_type << ","                   //
+            << bytes_total << ","                 //
+            << elements_per_rank << ","           //
+            << benchmark_its << ","               //
+            << time.min * SECS_TO_USECS << ","    //
+            << time.max * SECS_TO_USECS << ","    //
+            << time.avg * SECS_TO_USECS << ","    //
+            << time.stddev * SECS_TO_USECS << "," //
+            << bw_alg.min << ","                  //
+            << bw_alg.max << ","                  //
+            << bw_alg.avg << ","                  //
+            << bw_alg.stddev << ","               //
+            << bw_bus.min << ","                  //
+            << bw_bus.max << ","                  //
+            << bw_bus.avg << ","                  //
             << bw_bus.stddev;
 
         return oss.str();
