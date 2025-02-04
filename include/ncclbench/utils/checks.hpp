@@ -5,6 +5,8 @@
 #include <cuda.h>
 #include <mpi.h>
 
+#include <utility>
+
 #include "../xccl.hpp"
 #include "host.hpp"
 

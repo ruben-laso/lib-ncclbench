@@ -4,6 +4,7 @@
 
 #include <cstdint>
 
+#include <array>
 #include <string>
 
 // hashing the host name as it's done in the nccl examples
@@ -28,7 +29,7 @@ inline void get_hostname(char *hostname, const size_t maxlen) {
 }
 
 inline auto get_hostname() -> std::string {
-    std::array<char, 1024> hostname{};
+    std::array<char, 1024> hostname;
     get_hostname(hostname.data(), 1024);
     return {hostname.data()};
 }

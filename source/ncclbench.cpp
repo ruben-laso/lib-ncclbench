@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <utility>
 
 #include "ncclbench/ncclbench.hpp"
 
