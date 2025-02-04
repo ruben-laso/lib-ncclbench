@@ -16,19 +16,19 @@ namespace ncclbench {
 auto Result::header() -> std::string {
     std::ostringstream oss;
 
-    oss << std::left                               //
-        << std::setw(LRG_WIDTH) << "Operation"     //
-        << std::setw(SML_WIDTH) << "Blocking"      //
-        << std::setw(MID_WIDTH) << "Data Type"     //
-        << std::right                              //
-        << std::setw(LRG_WIDTH) << "Msg Size (B)"  //
-        << std::setw(MID_WIDTH) << "#Elements"     //
-        << std::setw(MID_WIDTH) << "Iterations"    //
-        << std::setw(MID_WIDTH) << "Min_Time (us)" //
-        << std::setw(MID_WIDTH) << "Avg_Time (us)" //
-        << std::setw(MID_WIDTH) << "Max_Time (us)" //
-        << std::setw(MID_WIDTH) << "algBW (GB/s)"  //
-        << std::setw(MID_WIDTH) << "busBW (GB/s)";
+    oss << std::left                                //
+        << std::setw(LRG_WIDTH) << "Operation"      //
+        << std::setw(SML_WIDTH) << "Blocking"       //
+        << std::setw(MID_WIDTH) << "Data Type"      //
+        << std::right                               //
+        << std::setw(LRG_WIDTH) << "Msg Size (B)"   //
+        << std::setw(MID_WIDTH) << "#Elements"      //
+        << std::setw(MID_WIDTH) << "Iterations"     //
+        << std::setw(MID_WIDTH) << "Time min. (us)" //
+        << std::setw(MID_WIDTH) << "Time avg. (us)" //
+        << std::setw(MID_WIDTH) << "Time max. (us)" //
+        << std::setw(MID_WIDTH) << "Alg BW (GB/s)"  //
+        << std::setw(MID_WIDTH) << "Bus BW (GB/s)";
 
     return oss.str();
 }
@@ -36,17 +36,17 @@ auto Result::header() -> std::string {
 auto Result::csv_header() -> std::string {
     std::ostringstream oss;
 
-    oss << "Operation,"      //
-        << "Blocking,"       //
-        << "Data_Type,"      //
-        << "Msg_Size_Bytes," //
-        << "#Elements,"      //
-        << "Iterations,"     //
-        << "Min_Time_us,"    //
-        << "Avg_Time_us,"    //
-        << "Max_Time_us,"    //
-        << "algBW_GBps,"     //
-        << "busBW_GBps";
+    oss << "Operation,"   //
+        << "Blocking,"    //
+        << "Data_Type,"   //
+        << "Msg_Size_B,"  //
+        << "#Elements,"   //
+        << "Iterations,"  //
+        << "Time_min_us," //
+        << "Time_avg_us," //
+        << "Time_max_us," //
+        << "AlgBW_GBps,"  //
+        << "BusBW_GBps";
 
     return oss.str();
 }
