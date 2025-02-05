@@ -83,9 +83,7 @@ struct NCCLBENCH_EXPORT Result {
     size_t bytes_total;
     size_t elements_per_rank;
     size_t benchmark_its;
-    double time_min;
-    double time_max;
-    double time_avg;
+    double time;
     double bw_alg;
     double bw_bus;
 

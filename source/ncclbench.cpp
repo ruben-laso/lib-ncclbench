@@ -16,18 +16,16 @@ namespace ncclbench {
 auto Result::header() -> std::string {
     std::ostringstream oss;
 
-    oss << std::left                                //
-        << std::setw(LRG_WIDTH) << "Operation"      //
-        << std::setw(SML_WIDTH) << "Blocking"       //
-        << std::setw(MID_WIDTH) << "Data Type"      //
-        << std::right                               //
-        << std::setw(LRG_WIDTH) << "Msg Size (B)"   //
-        << std::setw(MID_WIDTH) << "#Elements"      //
-        << std::setw(MID_WIDTH) << "Iterations"     //
-        << std::setw(MID_WIDTH) << "Time min. (us)" //
-        << std::setw(MID_WIDTH) << "Time avg. (us)" //
-        << std::setw(MID_WIDTH) << "Time max. (us)" //
-        << std::setw(MID_WIDTH) << "Alg BW (GB/s)"  //
+    oss << std::left                               //
+        << std::setw(LRG_WIDTH) << "Operation"     //
+        << std::setw(SML_WIDTH) << "Blocking"      //
+        << std::setw(MID_WIDTH) << "Data Type"     //
+        << std::right                              //
+        << std::setw(LRG_WIDTH) << "Msg Size (B)"  //
+        << std::setw(MID_WIDTH) << "#Elements"     //
+        << std::setw(MID_WIDTH) << "Iterations"    //
+        << std::setw(MID_WIDTH) << "Time (us)"     //
+        << std::setw(MID_WIDTH) << "Alg BW (GB/s)" //
         << std::setw(MID_WIDTH) << "Bus BW (GB/s)";
 
     return oss.str();
@@ -36,16 +34,14 @@ auto Result::header() -> std::string {
 auto Result::csv_header() -> std::string {
     std::ostringstream oss;
 
-    oss << "Operation,"   //
-        << "Blocking,"    //
-        << "Data_Type,"   //
-        << "Msg_Size_B,"  //
-        << "#Elements,"   //
-        << "Iterations,"  //
-        << "Time_min_us," //
-        << "Time_avg_us," //
-        << "Time_max_us," //
-        << "AlgBW_GBps,"  //
+    oss << "Operation,"  //
+        << "Blocking,"   //
+        << "Data_Type,"  //
+        << "Msg_Size_B," //
+        << "#Elements,"  //
+        << "Iterations," //
+        << "Time_us,"    //
+        << "AlgBW_GBps," //
         << "BusBW_GBps";
 
     return oss.str();
@@ -65,9 +61,7 @@ auto Result::text() const -> std::string {
         << std::setw(LRG_WIDTH) << bytes_total               //
         << std::setw(MID_WIDTH) << elements_per_rank         //
         << std::setw(MID_WIDTH) << benchmark_its             //
-        << std::setw(MID_WIDTH) << time_min * SECS_TO_USECS  //
-        << std::setw(MID_WIDTH) << time_avg * SECS_TO_USECS  //
-        << std::setw(MID_WIDTH) << time_max * SECS_TO_USECS  //
+        << std::setw(MID_WIDTH) << time * SECS_TO_USECS      //
         << std::setw(MID_WIDTH) << bw_alg                    //
         << std::setw(MID_WIDTH) << bw_bus;
 
@@ -85,9 +79,7 @@ auto Result::csv() const -> std::string {
         << bytes_total << ","               //
         << elements_per_rank << ","         //
         << benchmark_its << ","             //
-        << time_min * SECS_TO_USECS << ","  //
-        << time_avg * SECS_TO_USECS << ","  //
-        << time_max * SECS_TO_USECS << ","  //
+        << time * SECS_TO_USECS << ","      //
         << bw_alg << ","                    //
         << bw_bus;
 

@@ -41,28 +41,23 @@ static void sync_stream(cudaStream_t stream) {
 namespace blocking {
 template <typename BwFactor>
 auto gather_results(const Config &cfg, const Sizes &sizes,
-                    std::vector<double> &local_times, BwFactor &&bw_factor)
+                    std::vector<double> &local_begins,
+                    std::vector<double> &local_ends, BwFactor &&bw_factor)
     -> std::vector<Result> {
-    std::vector<Result> results(local_times.size());
+    std::vector<Result> results(local_begins.size());
 
-    std::vector<double> mins(local_times.size());
-    std::vector<double> maxs(local_times.size());
-    std::vector<double> avgs(local_times.size());
+    std::vector<double> begins(local_begins.size());
+    std::vector<double> ends(local_begins.size());
 
-    MPICHECK(MPI_Reduce(local_times.data(), mins.data(), local_times.size(),
+    MPICHECK(MPI_Reduce(local_begins.data(), begins.data(), local_begins.size(),
                         MPI_DOUBLE, MPI_MIN, 0, State::mpi_comm()));
-    MPICHECK(MPI_Reduce(local_times.data(), maxs.data(), local_times.size(),
+    MPICHECK(MPI_Reduce(local_ends.data(), ends.data(), local_ends.size(),
                         MPI_DOUBLE, MPI_MAX, 0, State::mpi_comm()));
-    MPICHECK(MPI_Reduce(local_times.data(), avgs.data(), local_times.size(),
-                        MPI_DOUBLE, MPI_SUM, 0, State::mpi_comm()));
 
-    for (size_t i = 0; i < local_times.size(); i++) {
-        avgs[i] /= State::ranks();
-    }
-
-    for (size_t i = 0; i < local_times.size(); i++) {
+    for (size_t i = 0; i < local_begins.size(); i++) {
+        const auto wall_time = ends[i] - begins[i];
         const auto alg_bw =
-            ncclbench::utils::to_GB(sizes.bytes_total) / maxs[i];
+            ncclbench::utils::to_GB(sizes.bytes_total) / wall_time;
         const auto bus_bw = alg_bw * bw_factor();
 
         results[i] = {cfg.operation,
@@ -71,9 +66,7 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
                       sizes.bytes_total,
                       sizes.elements_per_rank,
                       1,
-                      mins[i],
-                      maxs[i],
-                      avgs[i],
+                      wall_time,
                       alg_bw,
                       bus_bw};
     }
@@ -93,18 +86,24 @@ auto benchmark_loop(const Config &cfg, const Sizes &sizes, NCCLCall &&nccl_call,
                               ? cfg.benchmark_secs.value()
                               : std::numeric_limits<double>::infinity();
 
-    std::vector<double> local_times;
+    std::vector<double> local_begins;
+    std::vector<double> local_ends;
+    if (max_its < std::numeric_limits<size_t>::max()) {
+        local_begins.reserve(max_its);
+        local_ends.reserve(max_its);
+    }
 
     double accum_time = 0.0;
     size_t its = 0;
     bool stop = false;
     for (its = 0; its < max_its and not stop; its++) {
-        const auto start = MPI_Wtime();
+        const auto begin = MPI_Wtime();
         nccl_call();
         sync_stream(stream);
         const auto end = MPI_Wtime();
-        const auto elapsed = end - start;
-        local_times.push_back(elapsed);
+        const auto elapsed = end - begin;
+        local_begins.push_back(begin);
+        local_ends.push_back(end);
         accum_time += elapsed;
         if (cfg.benchmark_secs.has_value()) {
             stop = accum_time >= tgt_time;
@@ -112,33 +111,29 @@ auto benchmark_loop(const Config &cfg, const Sizes &sizes, NCCLCall &&nccl_call,
         }
     }
 
-    return gather_results(cfg, sizes, local_times, bw_factor);
+    return gather_results(cfg, sizes, local_begins, local_ends, bw_factor);
 }
-
 } // namespace blocking
 
 namespace nonblocking {
 template <typename BwFactor>
-auto gather_results(const Config &cfg, const Sizes &sizes, double local_time,
-                    BwFactor &&bw_factor) -> std::vector<Result> {
+auto gather_results(const Config &cfg, const Sizes &sizes, double local_begin,
+                    double local_end, BwFactor &&bw_factor)
+    -> std::vector<Result> {
     assert(not cfg.blocking);
 
     std::vector<Result> results(1);
 
-    double min;
-    double max;
-    double avg;
+    double begin;
+    double end;
 
-    MPICHECK(MPI_Reduce(&local_time, &min, 1, MPI_DOUBLE, MPI_MIN, 0,
+    MPICHECK(MPI_Reduce(&local_begin, &begin, 1, MPI_DOUBLE, MPI_MIN, 0,
                         State::mpi_comm()));
-    MPICHECK(MPI_Reduce(&local_time, &max, 1, MPI_DOUBLE, MPI_MAX, 0,
-                        State::mpi_comm()));
-    MPICHECK(MPI_Reduce(&local_time, &avg, 1, MPI_DOUBLE, MPI_SUM, 0,
+    MPICHECK(MPI_Reduce(&local_end, &end, 1, MPI_DOUBLE, MPI_MAX, 0,
                         State::mpi_comm()));
 
-    avg /= State::ranks();
-
-    const auto alg_bw = ncclbench::utils::to_GB(sizes.bytes_total) / max;
+    const auto wall_time = (end - begin) / cfg.benchmark_its.value();
+    const auto alg_bw = ncclbench::utils::to_GB(sizes.bytes_total) / wall_time;
     const auto bus_bw = alg_bw * bw_factor();
 
     results[0] = {cfg.operation,
@@ -147,9 +142,7 @@ auto gather_results(const Config &cfg, const Sizes &sizes, double local_time,
                   sizes.bytes_total,
                   sizes.elements_per_rank,
                   cfg.benchmark_its.value(),
-                  min,
-                  max,
-                  avg,
+                  wall_time,
                   alg_bw,
                   bus_bw};
 
@@ -174,13 +167,13 @@ auto benchmark_loop(const Config &cfg, const Sizes &sizes, NCCLCall &&nccl_call,
 
     const auto max_its = cfg.benchmark_its.value();
 
-    const auto start = MPI_Wtime();
+    const auto begin = MPI_Wtime();
     for (size_t i = 0; i < max_its; i++) {
         nccl_call();
     }
     const auto end = MPI_Wtime();
 
-    return gather_results(cfg, sizes, end - start, bw_factor);
+    return gather_results(cfg, sizes, begin, end, bw_factor);
 }
 
 } // namespace nonblocking

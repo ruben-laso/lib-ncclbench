@@ -45,6 +45,7 @@ struct ResultSummary {
             throw std::runtime_error{"Empty results"};
         }
         operation = results[0].operation;
+        blocking = results[0].blocking;
         data_type = results[0].data_type;
         bytes_total = results[0].bytes_total;
         elements_per_rank = results[0].elements_per_rank;
@@ -55,23 +56,23 @@ struct ResultSummary {
         // Time stats
         time.min = std::min_element(results.begin(), results.end(),
                                     [](const auto &a, const auto &b) {
-                                        return a.time_min < b.time_min;
+                                        return a.time < b.time;
                                     })
-                       ->time_min;
+                       ->time;
         time.max = std::max_element(results.begin(), results.end(),
                                     [](const auto &a, const auto &b) {
-                                        return a.time_max < b.time_max;
+                                        return a.time < b.time;
                                     })
-                       ->time_max;
-        time.avg = std::transform_reduce(
-                       results.begin(), results.end(), 0.0, std::plus<>{},
-                       [](const auto &a) { return a.time_avg; }) /
+                       ->time;
+        time.avg = std::transform_reduce(results.begin(), results.end(), 0.0,
+                                         std::plus<>{},
+                                         [](const auto &a) { return a.time; }) /
                    results.size();
         time.stddev =
             std::sqrt(std::transform_reduce(
                           results.begin(), results.end(), 0.0, std::plus<>{},
                           [avg = time.avg](const auto &a) {
-                              return std::pow(a.time_max - avg, 2);
+                              return std::pow(a.time - avg, 2);
                           }) /
                       results.size());
 
@@ -185,7 +186,7 @@ struct ResultSummary {
 
         oss << std::left                                                   //
             << std::setw(Result::LRG_WIDTH) << operation                   //
-            << std::setw(Result::SML_WIDTH) << (blocking ? "yes" : "no")   //
+            << std::setw(Result::SML_WIDTH) << (blocking ? "Yes" : "No")   //
             << std::setw(Result::MID_WIDTH) << data_type                   //
             << std::right                                                  //
             << std::setw(Result::LRG_WIDTH) << bytes_total                 //
@@ -213,7 +214,7 @@ struct ResultSummary {
         static constexpr double SECS_TO_USECS = 1.0E6;
 
         oss << operation << ","                   //
-            << (blocking ? "yes" : "no") << ","   //
+            << (blocking ? "Yes" : "No") << ","   //
             << data_type << ","                   //
             << bytes_total << ","                 //
             << elements_per_rank << ","           //
