@@ -99,6 +99,7 @@ inline auto get_nccl_id() -> ncclUniqueId {
 }
 
 auto State::nccl_comm() -> ncclComm_t {
+    std::ignore = State::gpu_assigned();
     const auto nccl_id = get_nccl_id();
     ncclComm_t comm;
     NCCLCHECK(ncclCommInitRank(&comm, State::ranks(), nccl_id, State::rank()));
