@@ -19,6 +19,7 @@ struct Options {
     bool blocking = false;
     bool csv = false;
     bool summary = false;
+    bool reuse_comm = false;
 };
 
 struct Stats {
@@ -274,6 +275,8 @@ auto main(int argc, char *argv[]) -> int {
         ->required()
         ->check(CLI::NonNegativeNumber);
     app.add_flag("-b,--blocking", options.blocking, "Blocking or non-blocking");
+    app.add_flag("-r,--reuse-comm", options.reuse_comm,
+                 "Reuse NCCL communicator");
     app.add_flag("--csv", options.csv, "Output in CSV format");
     app.add_flag("-S,--summary", options.summary, "Print summary");
 
@@ -309,6 +312,11 @@ auto main(int argc, char *argv[]) -> int {
     config.operation = options.operation;
     config.data_type = options.data_type;
     config.blocking = options.blocking;
+    if (options.reuse_comm) {
+        config.comm = ncclbench::State::nccl_comm();
+    } else {
+        config.comm = std::nullopt;
+    }
 
     if (options.warmup_its > 0) {
         config.warmup_its = options.warmup_its;
@@ -355,6 +363,10 @@ auto main(int argc, char *argv[]) -> int {
                 }
             }
         }
+    }
+
+    if (config.comm.has_value()) {
+        ncclCommDestroy(config.comm.value());
     }
 
     MPI_Finalize();

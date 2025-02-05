@@ -55,6 +55,7 @@ struct NCCLBENCH_EXPORT Config {
     std::optional<size_t> benchmark_its;
     std::optional<double> warmup_secs;
     std::optional<double> benchmark_secs;
+    std::optional<ncclComm_t> comm;
 };
 
 struct Sizes {
@@ -101,6 +102,7 @@ class State {
     std::optional<int> gpu_assigned_ = std::nullopt;
 
   public:
+    [[nodiscard]] static auto nccl_comm() -> ncclComm_t;
     [[nodiscard]] static auto mpi_comm() -> MPI_Comm;
     [[nodiscard]] static auto ranks() -> int;
     [[nodiscard]] static auto rank() -> int;

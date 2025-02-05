@@ -89,6 +89,22 @@ auto Result::csv() const -> std::string {
 static State state_;
 auto state() -> State & { return state_; }
 
+inline auto get_nccl_id() -> ncclUniqueId {
+    ncclUniqueId id;
+    if (State::rank() == 0) {
+        NCCLCHECK(ncclGetUniqueId(&id));
+    }
+    MPICHECK(MPI_Bcast(&id, sizeof(id), MPI_BYTE, 0, State::mpi_comm()));
+    return id;
+}
+
+auto State::nccl_comm() -> ncclComm_t {
+    const auto nccl_id = get_nccl_id();
+    ncclComm_t comm;
+    NCCLCHECK(ncclCommInitRank(&comm, State::ranks(), nccl_id, State::rank()));
+    return comm;
+}
+
 auto State::mpi_comm() -> MPI_Comm { return MPI_COMM_WORLD; }
 
 auto State::ranks() -> int {
