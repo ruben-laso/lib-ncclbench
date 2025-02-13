@@ -9,6 +9,47 @@
 #include "include/Options.hpp"
 #include "include/Results.hpp"
 
+inline auto generate_cfgs(const Options &options) {
+    const auto num_cfgs = options.sizes_bytes.size();
+
+    std::vector<ncclbench::Config> cfgs(num_cfgs);
+
+    auto comm = options.reuse_comm
+                    ? std::optional<ncclComm_t>{ncclbench::State::nccl_comm()}
+                    : std::optional<ncclComm_t>{std::nullopt};
+
+    for (size_t i = 0; i < num_cfgs; i++) {
+        auto &cfg = cfgs[i];
+        cfg.operation = options.operation;
+        cfg.data_type = options.data_type;
+        cfg.bytes_total = options.sizes_bytes[i];
+        cfg.blocking = options.blocking;
+        cfg.comm = comm;
+        // Handle warmup iterations or time
+        if (not options.warmup_its.empty() and options.warmup_its[i] > 0) {
+            cfg.warmup_its = options.warmup_its[i];
+        }
+        if (not options.warmup_secs.empty() and options.warmup_secs[i] > 0.0) {
+            cfg.warmup_secs = options.warmup_secs[i];
+        }
+        if (not cfg.warmup_its.has_value() and
+            not cfg.warmup_secs.has_value()) {
+            cfg.warmup_its = 0;
+        }
+        // Handle benchmark iterations or time
+        if (not options.benchmark_its.empty() and
+            options.benchmark_its[i] > 0) {
+            cfg.benchmark_its = options.benchmark_its[i];
+        }
+        if (not options.benchmark_secs.empty() and
+            options.benchmark_secs[i] > 0.0) {
+            cfg.benchmark_secs = options.benchmark_secs[i];
+        }
+    }
+
+    return cfgs;
+}
+
 auto main(int argc, char *argv[]) -> int {
     MPI_Init(&argc, &argv);
 
@@ -17,33 +58,7 @@ auto main(int argc, char *argv[]) -> int {
 
     const auto options = parse_options(argc, argv);
 
-    ncclbench::Config config;
-    config.operation = options.operation;
-    config.data_type = options.data_type;
-    config.blocking = options.blocking;
-    if (options.reuse_comm) {
-        config.comm = ncclbench::State::nccl_comm();
-    } else {
-        config.comm = std::nullopt;
-    }
-
-    if (options.warmup_its > 0) {
-        config.warmup_its = options.warmup_its;
-    }
-    if (options.warmup_secs > 0.0) {
-        config.warmup_secs = options.warmup_secs;
-    }
-    if (not config.warmup_its.has_value() and
-        not config.warmup_secs.has_value()) {
-        config.warmup_its = 0;
-    }
-
-    if (options.benchmark_its > 0) {
-        config.benchmark_its = options.benchmark_its;
-    }
-    if (options.benchmark_secs > 0.0) {
-        config.benchmark_secs = options.benchmark_secs;
-    }
+    const auto cfgs = generate_cfgs(options);
 
     if (rank == 0) {
         if (options.summary) {
@@ -57,10 +72,9 @@ auto main(int argc, char *argv[]) -> int {
         }
     }
 
-    for (const auto size : options.sizes_bytes) {
-        config.bytes_total = size;
+    for (const auto &cfg : cfgs) {
         MPI_Barrier(MPI_COMM_WORLD);
-        const auto res = ncclbench::run(config);
+        const auto res = ncclbench::run(cfg);
         if (rank == 0) {
             if (options.summary) {
                 ResultSummary summary(res);
@@ -74,8 +88,9 @@ auto main(int argc, char *argv[]) -> int {
         }
     }
 
-    if (config.comm.has_value()) {
-        ncclCommDestroy(config.comm.value());
+    if (options.reuse_comm) {
+        // Destroy communicator. It is the same for all ranks
+        ncclCommDestroy(cfgs[0].comm.value());
     }
 
     MPI_Finalize();
