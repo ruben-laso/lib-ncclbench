@@ -32,10 +32,7 @@ inline auto generate_cfgs(const Options &options) {
         if (not options.warmup_secs.empty() and options.warmup_secs[i] > 0.0) {
             cfg.warmup_secs = options.warmup_secs[i];
         }
-        if (not cfg.warmup_its.has_value() and
-            not cfg.warmup_secs.has_value()) {
-            cfg.warmup_its = 0;
-        }
+
         // Handle benchmark iterations or time
         if (not options.benchmark_its.empty() and
             options.benchmark_its[i] > 0) {

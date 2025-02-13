@@ -210,7 +210,7 @@ auto run_benchmark(const Config &cfg, const Sizes &sizes,
     };
 
     // Warmup
-    {
+    if (cfg.warmup_its.has_value() or cfg.warmup_secs.has_value()) {
         MPICHECK(MPI_Barrier(State::mpi_comm()));
         auto warmup_cfg = cfg;
         warmup_cfg.benchmark_its = cfg.warmup_its;
