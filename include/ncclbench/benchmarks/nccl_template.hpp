@@ -75,6 +75,11 @@ auto benchmark_loop(const Config &cfg, const Sizes &sizes, NCCLCall &&nccl_call,
         local_ends.reserve(max_its);
     }
 
+    if (cfg.group) {
+        throw std::runtime_error(
+            "Grouped benchmarking is not supported in blocking mode");
+    }
+
     double accum_time = 0.0;
     size_t its = 0;
     bool stop = false;
@@ -151,9 +156,20 @@ auto benchmark_loop(const Config &cfg, const Sizes &sizes, NCCLCall &&nccl_call,
     const auto max_its = cfg.benchmark_its.value();
 
     const auto begin = MPI_Wtime();
+
+    if (cfg.group) {
+        ncclGroupStart();
+    }
+
     for (size_t i = 0; i < max_its; i++) {
         nccl_call();
     }
+
+    if (cfg.group) {
+        ncclGroupEnd();
+    }
+    sync_stream(stream);
+
     const auto end = MPI_Wtime();
 
     return gather_results(cfg, sizes, begin, end, bw_factor);

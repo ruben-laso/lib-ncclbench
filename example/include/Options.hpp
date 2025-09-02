@@ -16,6 +16,7 @@ struct Options {
     std::vector<double> benchmark_secs = {};
     std::vector<double> warmup_secs = {};
     bool blocking = false;
+    bool group = false;
     bool csv = false;
     bool summary = false;
     bool reuse_comm = false;
@@ -80,6 +81,8 @@ inline auto parse_options(const int argc, char *argv[]) -> Options {
         ->required()
         ->check(CLI::NonNegativeNumber);
     app.add_flag("-b,--blocking", options.blocking, "Blocking or non-blocking");
+    app.add_flag("-g,--group", options.group,
+                 "Enable ncclGroupStart/End (only for non-blocking)");
     app.add_flag("-r,--reuse-comm", options.reuse_comm,
                  "Reuse NCCL communicator");
     app.add_flag("--csv", options.csv, "Output in CSV format");

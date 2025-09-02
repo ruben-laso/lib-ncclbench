@@ -24,6 +24,7 @@ inline auto generate_cfgs(const Options &options) {
         cfg.data_type = options.data_type;
         cfg.bytes_total = options.sizes_bytes[i];
         cfg.blocking = options.blocking;
+        cfg.group = options.group;
         cfg.comm = comm;
         // Handle warmup iterations or time
         if (not options.warmup_its.empty() and options.warmup_its[i] > 0) {
