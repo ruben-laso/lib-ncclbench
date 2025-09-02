@@ -18,7 +18,6 @@ namespace ncclbench::benchmark {
 namespace utils {
 static void sync_stream(cudaStream_t stream) {
     CUDACHECK(cudaStreamSynchronize(stream));
-    MPICHECK(MPI_Barrier(State::mpi_comm()));
 }
 
 namespace blocking {
@@ -80,6 +79,7 @@ auto benchmark_loop(const Config &cfg, const Sizes &sizes, NCCLCall &&nccl_call,
     size_t its = 0;
     bool stop = false;
     for (its = 0; its < max_its and not stop; its++) {
+        MPICHECK(MPI_Barrier(State::mpi_comm()));
         const auto begin = MPI_Wtime();
         nccl_call();
         sync_stream(stream);
