@@ -2,20 +2,21 @@
 
 #include <cstdint>
 #include <stdexcept>
+#include <string_view>
 
 #include "ncclbench/ncclbench_export.hpp"
 
 namespace ncclbench::functions {
 
-static const char *const NCCL_ALL_GATHER = "ncclAllGather";
-static const char *const NCCL_ALL_REDUCE = "ncclAllReduce";
-static const char *const NCCL_ALL_TO_ALL = "ncclAllToAll";
-static const char *const NCCL_BROADCAST = "ncclBroadcast";
-static const char *const NCCL_POINT_TO_POINT = "ncclPointToPoint";
-static const char *const NCCL_REDUCE_SCATTER = "ncclReduceScatter";
-static const char *const NCCL_REDUCE = "ncclReduce";
+static constexpr std::string_view NCCL_ALL_GATHER = "ncclAllGather";
+static constexpr std::string_view NCCL_ALL_REDUCE = "ncclAllReduce";
+static constexpr std::string_view NCCL_ALL_TO_ALL = "ncclAllToAll";
+static constexpr std::string_view NCCL_BROADCAST = "ncclBroadcast";
+static constexpr std::string_view NCCL_POINT_TO_POINT = "ncclPointToPoint";
+static constexpr std::string_view NCCL_REDUCE_SCATTER = "ncclReduceScatter";
+static constexpr std::string_view NCCL_REDUCE = "ncclReduce";
 
-enum class NCCL_FUNCTIONS : uint8_t {
+enum NCCL_FUNCTIONS {
     ALL_GATHER,
     ALL_REDUCE,
     ALL_TO_ALL,

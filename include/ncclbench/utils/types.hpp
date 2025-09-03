@@ -2,6 +2,7 @@
 
 #include <map>
 #include <stdexcept>
+#include <string_view>
 
 #include <mpi.h>
 
@@ -17,20 +18,20 @@
 
 namespace ncclbench::types {
 
-static const char *const NCCL_INT_8 = "int8";
-static const char *const NCCL_UINT_8 = "uint8";
-static const char *const NCCL_INT_32 = "int32";
-static const char *const NCCL_UINT_32 = "uint32";
-static const char *const NCCL_INT_64 = "int64";
-static const char *const NCCL_UINT_64 = "uint64";
-static const char *const NCCL_HALF = "half";
-static const char *const NCCL_FLOAT = "float";
-static const char *const NCCL_DOUBLE = "double";
+static constexpr std::string_view NCCL_INT_8 = "int8";
+static constexpr std::string_view NCCL_UINT_8 = "uint8";
+static constexpr std::string_view NCCL_INT_32 = "int32";
+static constexpr std::string_view NCCL_UINT_32 = "uint32";
+static constexpr std::string_view NCCL_INT_64 = "int64";
+static constexpr std::string_view NCCL_UINT_64 = "uint64";
+static constexpr std::string_view NCCL_HALF = "half";
+static constexpr std::string_view NCCL_FLOAT = "float";
+static constexpr std::string_view NCCL_DOUBLE = "double";
 #if defined(NCCL_BF16_TYPES_EXIST)
-static const char *const NCCL_BFLOAT16 = "bfloat16";
+static constexpr std::string_view NCCL_BFLOAT16 = "bfloat16";
 #endif
 
-enum class NCCL_TYPES : uint8_t {
+enum NCCL_TYPES {
     INT8,
     UINT8,
     INT32,

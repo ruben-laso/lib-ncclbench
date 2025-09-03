@@ -56,19 +56,21 @@ inline auto parse_options(const int argc, char *argv[]) -> Options {
 
     Options options;
 
+    const auto concat_values = [](const std::string &out_str,
+                                  const std::string_view &val) {
+        return out_str.empty() ? std::string(val)
+                               : out_str + " " + std::string(val);
+    };
+
     const std::string operations =
-        std::accumulate(ncclbench::SUPPORTED_OPERATIONS.begin(),
-                        ncclbench::SUPPORTED_OPERATIONS.end(), std::string{},
-                        [](const std::string &a, const std::string &b) {
-                            return a.empty() ? b : a + " " + b;
-                        });
+        std::accumulate(std::begin(ncclbench::SUPPORTED_OPERATIONS),
+                        std::end(ncclbench::SUPPORTED_OPERATIONS),
+                        std::string{}, concat_values);
 
     const std::string data_types =
-        std::accumulate(ncclbench::SUPPORTED_DATA_TYPES.begin(),
-                        ncclbench::SUPPORTED_DATA_TYPES.end(), std::string{},
-                        [](const std::string &a, const std::string &b) {
-                            return a.empty() ? b : a + " " + b;
-                        });
+        std::accumulate(std::begin(ncclbench::SUPPORTED_DATA_TYPES),
+                        std::end(ncclbench::SUPPORTED_DATA_TYPES),
+                        std::string{}, concat_values);
 
     app.add_option("-o,--operation", options.operation,
                    "NCCL operation. Select from: [" + operations + "]")
