@@ -43,8 +43,8 @@ static auto sync_stream_time() -> double {
         }
         time = time / i;
 
-        std::clog << "Stream synchronization time: " << time * 1e6
-                  << " us (averaged over " << i << " iterations)" << std::endl;
+        // std::clog << "Stream synchronization time: " << time * 1e6
+        //           << " us (averaged over " << i << " iterations)" << std::endl;
 
         CUDACHECK(cudaStreamDestroy(stream));
 
