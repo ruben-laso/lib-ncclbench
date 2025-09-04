@@ -20,6 +20,40 @@ static void sync_stream(cudaStream_t stream) {
     CUDACHECK(cudaStreamSynchronize(stream));
 }
 
+static auto sync_stream_time() -> double {
+    static double time = []() {
+        // Benchmark stream synchronization time for 1000 times or 1s
+        constexpr auto MAX_ITS = 1000;
+        constexpr auto MAX_TIME = 1.0; // seconds
+
+        cudaStream_t stream;
+        CUDACHECK(cudaStreamCreate(&stream));
+
+        double time = 0.0;
+
+        size_t i = 0;
+        for (i = 0; i < MAX_ITS; i++) {
+            const auto start = MPI_Wtime();
+            sync_stream(stream);
+            const auto end = MPI_Wtime();
+            time += end - start;
+            if (time >= MAX_TIME) {
+                break;
+            }
+        }
+        time = time / i;
+
+        std::clog << "Stream synchronization time: " << time * 1e6
+                  << " us (averaged over " << i << " iterations)" << std::endl;
+
+        CUDACHECK(cudaStreamDestroy(stream));
+
+        return time;
+    }();
+
+    return time;
+}
+
 namespace blocking {
 template <typename BwFactor>
 auto gather_results(const Config &cfg, const Sizes &sizes,
@@ -89,7 +123,7 @@ auto benchmark_loop(const Config &cfg, const Sizes &sizes, NCCLCall &&nccl_call,
         nccl_call();
         sync_stream(stream);
         const auto end = MPI_Wtime();
-        const auto elapsed = end - begin;
+        const auto elapsed = end - begin - utils::sync_stream_time();
         local_begins.push_back(begin);
         local_ends.push_back(end);
         accum_time += elapsed;
