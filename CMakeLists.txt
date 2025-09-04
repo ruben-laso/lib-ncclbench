@@ -10,7 +10,7 @@ project(
     VERSION 0.1.0
     DESCRIPTION "Library for benchmarking NCCL"
     HOMEPAGE_URL "https://github.com/ruben-laso/lib-ncclbench"
-    LANGUAGES CXX
+    LANGUAGES CXX CUDA
 )
 
 # Set C++ standard to C++17
@@ -97,29 +97,22 @@ find_package(MPI REQUIRED)
 list(APPEND LINK_LIBRARIES MPI::MPI_CXX)
 
 if (XCCL STREQUAL "NCCL")
-  # CUDA
-  find_package(CUDA REQUIRED)
-  list(APPEND LINK_LIBRARIES ${CUDA_LIBRARIES})
+  find_package(CUDAToolkit REQUIRED)
+  list(APPEND LINK_LIBRARIES CUDA::cudart)
 
   find_package(NCCL REQUIRED)  # Only call find_package if paths are not provided
-
-  # if artifact "nccl" exists, add it to LINK_LIBRARIES
-  if (TARGET nccl)
-    list(APPEND LINK_LIBRARIES nccl)  # Ensure 'nccl' is linked
-  else ()
-    list(APPEND INCLUDE_DIRS ${NCCL_INCLUDE_DIRS})
-    list(APPEND LINK_LIBRARIES ${NCCL_LIBRARIES})
-  endif ()
+  list(APPEND LINK_LIBRARIES NCCL::NCCL)
 elseif (XCCL STREQUAL "RCCL")
   message(FATAL_ERROR "RCCL is not supported yet")
 endif ()
 
 # ---- Declare library ----
 
+add_library(libncclbench_libncclbench ${SOURCES})
 if (XCCL STREQUAL "NCCL")
-  cuda_add_library(libncclbench_libncclbench ${SOURCES})
-else ()
-  add_library(libncclbench_libncclbench ${SOURCES})
+  set_target_properties(libncclbench_libncclbench PROPERTIES
+      CUDA_SEPARABLE_COMPILATION ON
+  )
 endif ()
 
 add_library(libncclbench::libncclbench ALIAS libncclbench_libncclbench)
