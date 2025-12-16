@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(libncclbenchExamples CXX)
+project(libncclbenchExample CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(../cmake/project-is-top-level.cmake)
 include(../cmake/folders.cmake)
@@ -11,15 +15,8 @@ endif ()
 
 add_custom_target(run-examples)
 
-function(add_example NAME)
-  add_executable("${NAME}" "${NAME}.cpp")
-  target_link_libraries("${NAME}" PRIVATE libncclbench::libncclbench)
-  target_compile_features("${NAME}" PRIVATE cxx_std_17)
-  add_custom_target("run_${NAME}" COMMAND "${NAME}" VERBATIM)
-  add_dependencies("run_${NAME}" "${NAME}")
-  add_dependencies(run-examples "run_${NAME}")
-endfunction()
+add_executable(ncclbench ncclbench.cpp)
 
-add_example(libncclbench_example)
+target_compile_features(ncclbench PRIVATE cxx_std_20)
 
-add_folders(Example)
+target_link_libraries(ncclbench PRIVATE libncclbench::libncclbench)
