@@ -1,0 +1,19 @@
+- operation: ncclAllReduce
+  sizes: [1024, 2048, 4096]
+  data-type: float
+  blocking: true
+  group: false
+  warmup-its: 10
+  warmup-secs: 1
+  benchmark-its: 50
+  benchmark-secs: 3
+
+- operation: ncclAllReduce
+  sizes: [1048576, 2097152, 4194304]
+  data-type: int8
+  blocking: true
+  group: false
+  warmup-its: 1000000
+  warmup-secs: 1
+  benchmark-its: 5000000
+  benchmark-secs: 3

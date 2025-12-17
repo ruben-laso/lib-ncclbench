@@ -6,47 +6,9 @@
 
 #include <mpi.h>
 
+#include "include/Configs.hpp"
 #include "include/Options.hpp"
 #include "include/Results.hpp"
-
-inline auto generate_cfgs(const Options &options) {
-    const auto num_cfgs = options.sizes_bytes.size();
-
-    std::vector<ncclbench::Config> cfgs(num_cfgs);
-
-    auto comm = options.reuse_comm
-                    ? std::optional<ncclComm_t>{ncclbench::State::nccl_comm()}
-                    : std::optional<ncclComm_t>{std::nullopt};
-
-    for (size_t i = 0; i < num_cfgs; i++) {
-        auto &cfg = cfgs[i];
-        cfg.operation = options.operation;
-        cfg.data_type = options.data_type;
-        cfg.bytes_total = options.sizes_bytes[i];
-        cfg.blocking = options.blocking;
-        cfg.group = options.group;
-        cfg.comm = comm;
-        // Handle warmup iterations or time
-        if (not options.warmup_its.empty() and options.warmup_its[i] > 0) {
-            cfg.warmup_its = options.warmup_its[i];
-        }
-        if (not options.warmup_secs.empty() and options.warmup_secs[i] > 0.0) {
-            cfg.warmup_secs = options.warmup_secs[i];
-        }
-
-        // Handle benchmark iterations or time
-        if (not options.benchmark_its.empty() and
-            options.benchmark_its[i] > 0) {
-            cfg.benchmark_its = options.benchmark_its[i];
-        }
-        if (not options.benchmark_secs.empty() and
-            options.benchmark_secs[i] > 0.0) {
-            cfg.benchmark_secs = options.benchmark_secs[i];
-        }
-    }
-
-    return cfgs;
-}
 
 auto main(int argc, char *argv[]) -> int {
     MPI_Init(&argc, &argv);
@@ -56,7 +18,7 @@ auto main(int argc, char *argv[]) -> int {
 
     const auto options = parse_options(argc, argv);
 
-    const auto cfgs = generate_cfgs(options);
+    const auto cfgs = cfgs::generate_cfgs(options);
 
     if (rank == 0) {
         if (options.summary) {
