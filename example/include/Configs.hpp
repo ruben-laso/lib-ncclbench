@@ -11,7 +11,16 @@ namespace yaml {
 inline auto load_operation_cfg(const YAML::Node &node, const Options &options) {
     std::vector<ncclbench::Config> cfgs;
 
-    const auto sizes = node["sizes"].as<std::vector<size_t>>();
+    const auto sizes = [&]() {
+        // First try as vector
+        // Second, as a single size
+        // Else, throw error
+        try {
+            return node["sizes"].as<std::vector<size_t>>();
+        } catch (const YAML::Exception &e) {
+            return std::vector<size_t>{node["sizes"].as<size_t>()};
+        }
+    }();
 
     for (const auto &size : sizes) {
         ncclbench::Config cfg;
