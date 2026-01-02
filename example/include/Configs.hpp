@@ -78,10 +78,6 @@ inline auto generate_cfgs(const Options &options) {
 
     std::vector<ncclbench::Config> cfgs(num_cfgs);
 
-    auto comm = options.reuse_comm
-                    ? std::optional<ncclComm_t>{ncclbench::State::nccl_comm()}
-                    : std::optional<ncclComm_t>{std::nullopt};
-
     for (size_t i = 0; i < num_cfgs; i++) {
         auto &cfg = cfgs[i];
         cfg.operation = options.operation;
@@ -89,7 +85,6 @@ inline auto generate_cfgs(const Options &options) {
         cfg.bytes_total = options.sizes_bytes[i];
         cfg.blocking = options.blocking;
         cfg.group = options.group;
-        cfg.comm = comm;
         // Handle warmup iterations or time
         if (not options.warmup_its.empty() and options.warmup_its[i] > 0) {
             cfg.warmup_its = options.warmup_its[i];
@@ -114,10 +109,18 @@ inline auto generate_cfgs(const Options &options) {
 } // namespace args
 
 inline auto generate_cfgs(const Options &options) {
-    if (not options.config_file.empty()) {
-        return yaml::generate_cfgs(options);
-    } else {
-        return args::generate_cfgs(options);
+    auto cfgs = options.config_file.empty()
+                    ? args::generate_cfgs(options)
+                    : yaml::generate_cfgs(options);
+
+    if (options.reuse_comm) {
+        // Create a single communicator to be reused
+        const auto comm = ncclbench::State::nccl_comm();
+        for (auto &cfg : cfgs) {
+            cfg.comm = comm;
+        }
     }
+
+    return cfgs;
 }
 } // namespace cfgs
