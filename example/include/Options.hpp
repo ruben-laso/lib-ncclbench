@@ -94,15 +94,6 @@ inline auto parse_options(const int argc, char *argv[]) -> Options {
                      "Size(s) in bytes. E.g.: 1024 2048 4096")
         ->check(CLI::NonNegativeNumber);
 
-    // Global options (can be overridden by config file settings)
-    grp_bench_settings->add_flag("-b,--blocking", options.blocking,
-                                 "Blocking or non-blocking");
-    grp_bench_settings->add_flag(
-        "-g,--group", options.group,
-        "Enable ncclGroupStart/End (only for non-blocking)");
-    grp_bench_settings->add_flag("-r,--reuse-comm", options.reuse_comm,
-                                 "Reuse NCCL communicator");
-
     // Either config file or individual settings must be provided
     grp_config->excludes(grp_bench_settings);
     grp_bench_settings->excludes(grp_config);
@@ -144,6 +135,16 @@ inline auto parse_options(const int argc, char *argv[]) -> Options {
     auto grp_output = app.add_option_group("Output options");
     grp_output->add_flag("--csv", options.csv, "Output in CSV format");
     grp_output->add_flag("-S,--summary", options.summary, "Print summary");
+
+    // Global options (can be overridden by config file settings)
+    auto grp_global = app.add_option_group("Global options");
+    grp_global->add_flag("-b,--blocking", options.blocking,
+                                 "Blocking or non-blocking");
+    grp_global->add_flag(
+        "-g,--group", options.group,
+        "Enable ncclGroupStart/End (only for non-blocking)");
+    grp_global->add_flag("-r,--reuse-comm", options.reuse_comm,
+                                 "Reuse NCCL communicator");
 
     try {
         app.parse(argc, argv);
