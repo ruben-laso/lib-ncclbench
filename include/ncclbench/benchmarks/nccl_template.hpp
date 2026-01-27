@@ -8,6 +8,7 @@
 #include "ncclbench/utils/types.hpp"
 #include "ncclbench/utils/utils.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <tuple>
@@ -63,16 +64,22 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
     -> std::vector<Result> {
     std::vector<Result> results(local_begins.size());
 
-    std::vector<double> begins(local_begins.size());
-    std::vector<double> ends(local_begins.size());
+    std::vector<double> local_wall_times(local_begins.size());
+    // local_wall_times[i] = local_ends[i] - local_begins[i]
+    std::transform(
+        local_begins.begin(), local_begins.end(), //
+        local_ends.begin(),                       //
+        local_wall_times.begin(),                 //
+        [](const auto &begin, const auto &end) { return end - begin; });
 
-    MPICHECK(MPI_Reduce(local_begins.data(), begins.data(), local_begins.size(),
-                        MPI_DOUBLE, MPI_MIN, 0, State::mpi_comm()));
-    MPICHECK(MPI_Reduce(local_ends.data(), ends.data(), local_ends.size(),
-                        MPI_DOUBLE, MPI_MAX, 0, State::mpi_comm()));
+    std::vector<double> global_wall_times(local_begins.size());
+
+    MPICHECK(MPI_Reduce(local_wall_times.data(), global_wall_times.data(),
+                        static_cast<int>(local_wall_times.size()), MPI_DOUBLE,
+                        MPI_MAX, 0, State::mpi_comm()));
 
     for (size_t i = 0; i < local_begins.size(); i++) {
-        const auto wall_time = ends[i] - begins[i];
+        const auto wall_time = global_wall_times[i];
         const auto alg_bw =
             ncclbench::utils::to_GB(sizes.bytes_total) / wall_time;
         const auto bus_bw = alg_bw * bw_factor();
@@ -148,15 +155,14 @@ auto gather_results(const Config &cfg, const Sizes &sizes, double local_begin,
 
     std::vector<Result> results(1);
 
-    double begin;
-    double end;
+    const auto local_wall_time = local_end - local_begin;
 
-    MPICHECK(MPI_Reduce(&local_begin, &begin, 1, MPI_DOUBLE, MPI_MIN, 0,
-                        State::mpi_comm()));
-    MPICHECK(MPI_Reduce(&local_end, &end, 1, MPI_DOUBLE, MPI_MAX, 0,
-                        State::mpi_comm()));
+    auto global_wall_time = 0.0;
 
-    const auto wall_time = (end - begin) / cfg.benchmark_its.value();
+    MPICHECK(MPI_Reduce(&local_wall_time, &global_wall_time, 1, MPI_DOUBLE,
+                        MPI_MAX, 0, State::mpi_comm()));
+
+    const auto wall_time = global_wall_time / cfg.benchmark_its.value();
     const auto alg_bw = ncclbench::utils::to_GB(sizes.bytes_total) / wall_time;
     const auto bus_bw = alg_bw * bw_factor();
 
