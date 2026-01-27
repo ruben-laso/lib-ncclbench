@@ -44,7 +44,8 @@ static auto sync_stream_time() -> double {
         time = time / i;
 
         // std::clog << "Stream synchronization time: " << time * 1e6
-        //           << " us (averaged over " << i << " iterations)" << std::endl;
+        //           << " us (averaged over " << i << " iterations)" <<
+        //           std::endl;
 
         CUDACHECK(cudaStreamDestroy(stream));
 
@@ -82,6 +83,7 @@ auto gather_results(const Config &cfg, const Sizes &sizes,
                       sizes.bytes_total,
                       sizes.elements_per_rank,
                       1,
+                      sync_stream_time(),
                       wall_time,
                       alg_bw,
                       bus_bw};
@@ -164,6 +166,7 @@ auto gather_results(const Config &cfg, const Sizes &sizes, double local_begin,
                   sizes.bytes_total,
                   sizes.elements_per_rank,
                   cfg.benchmark_its.value(),
+                  sync_stream_time(),
                   wall_time,
                   alg_bw,
                   bus_bw};

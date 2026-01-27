@@ -16,16 +16,17 @@ namespace ncclbench {
 auto Result::header() -> std::string {
     std::ostringstream oss;
 
-    oss << std::left                               //
-        << std::setw(LRG_WIDTH) << "Operation"     //
-        << std::setw(SML_WIDTH) << "Blocking"      //
-        << std::setw(MID_WIDTH) << "Data Type"     //
-        << std::right                              //
-        << std::setw(LRG_WIDTH) << "Msg Size (B)"  //
-        << std::setw(MID_WIDTH) << "#Elements"     //
-        << std::setw(MID_WIDTH) << "Iterations"    //
-        << std::setw(MID_WIDTH) << "Time (us)"     //
-        << std::setw(MID_WIDTH) << "Alg BW (GB/s)" //
+    oss << std::left                                   //
+        << std::setw(LRG_WIDTH) << "Operation"         //
+        << std::setw(SML_WIDTH) << "Blocking"          //
+        << std::setw(MID_WIDTH) << "Data Type"         //
+        << std::right                                  //
+        << std::setw(LRG_WIDTH) << "Msg Size (B)"      //
+        << std::setw(MID_WIDTH) << "#Elements"         //
+        << std::setw(MID_WIDTH) << "Iterations"        //
+        << std::setw(LRG_WIDTH) << "Stream Sync. (us)" //
+        << std::setw(MID_WIDTH) << "Time (us)"         //
+        << std::setw(MID_WIDTH) << "Alg BW (GB/s)"     //
         << std::setw(MID_WIDTH) << "Bus BW (GB/s)";
 
     return oss.str();
@@ -34,53 +35,56 @@ auto Result::header() -> std::string {
 auto Result::csv_header() -> std::string {
     std::ostringstream oss;
 
-    oss << "Operation,"  //
-        << "Blocking,"   //
-        << "Data_Type,"  //
-        << "Msg_Size_B," //
-        << "#Elements,"  //
-        << "Iterations," //
-        << "Time_us,"    //
-        << "AlgBW_GBps," //
+    oss << "Operation,"      //
+        << "Blocking,"       //
+        << "Data_Type,"      //
+        << "Msg_Size_B,"     //
+        << "#Elements,"      //
+        << "Iterations,"     //
+        << "Stream_Sync_us," //
+        << "Time_us,"        //
+        << "AlgBW_GBps,"     //
         << "BusBW_GBps";
 
     return oss.str();
 }
 
 auto Result::text() const -> std::string {
-    static constexpr double SECS_TO_USECS = 1.0E6;
+    const auto s_to_us = [](const auto &s) { return s * 1.0E6; };
 
     std::ostringstream oss;
 
     oss << std::fixed << std::setprecision(PRECISION);
-    oss << std::left                                         //
-        << std::setw(LRG_WIDTH) << operation                 //
-        << std::setw(SML_WIDTH) << (blocking ? "Yes" : "No") //
-        << std::setw(MID_WIDTH) << data_type                 //
-        << std::right                                        //
-        << std::setw(LRG_WIDTH) << bytes_total               //
-        << std::setw(MID_WIDTH) << elements_per_rank         //
-        << std::setw(MID_WIDTH) << benchmark_its             //
-        << std::setw(MID_WIDTH) << time * SECS_TO_USECS      //
-        << std::setw(MID_WIDTH) << bw_alg                    //
+    oss << std::left                                             //
+        << std::setw(LRG_WIDTH) << operation                     //
+        << std::setw(SML_WIDTH) << (blocking ? "Yes" : "No")     //
+        << std::setw(MID_WIDTH) << data_type                     //
+        << std::right                                            //
+        << std::setw(LRG_WIDTH) << bytes_total                   //
+        << std::setw(MID_WIDTH) << elements_per_rank             //
+        << std::setw(MID_WIDTH) << benchmark_its                 //
+        << std::setw(LRG_WIDTH) << s_to_us(stream_sync_time_sec) //
+        << std::setw(MID_WIDTH) << s_to_us(time_sec)             //
+        << std::setw(MID_WIDTH) << bw_alg                        //
         << std::setw(MID_WIDTH) << bw_bus;
 
     return oss.str();
 }
 
 auto Result::csv() const -> std::string {
-    static constexpr double SECS_TO_USECS = 1.0E6;
+    const auto s_to_us = [](const auto &s) { return s * 1.0E6; };
 
     std::ostringstream oss;
 
-    oss << operation << ","                 //
-        << (blocking ? "Yes" : "No") << "," //
-        << data_type << ","                 //
-        << bytes_total << ","               //
-        << elements_per_rank << ","         //
-        << benchmark_its << ","             //
-        << time * SECS_TO_USECS << ","      //
-        << bw_alg << ","                    //
+    oss << operation << ","                     //
+        << (blocking ? "Yes" : "No") << ","     //
+        << data_type << ","                     //
+        << bytes_total << ","                   //
+        << elements_per_rank << ","             //
+        << benchmark_its << ","                 //
+        << s_to_us(stream_sync_time_sec) << "," //
+        << s_to_us(time_sec) << ","             //
+        << bw_alg << ","                        //
         << bw_bus;
 
     return oss.str();
